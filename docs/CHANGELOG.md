@@ -6,6 +6,213 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ---
 
+## [2.3.0] - 2024 - Extração de Imagens e Divisão Avançada de PDFs
+
+### ✨ Adicionado
+
+#### Nova Funcionalidade: Extração de Imagens de PDFs
+- **Serviço ImageExtractorService completo**:
+  - Opção específica para extrair apenas imagens do PDF
+  - Salvamento em pasta organizada com nomes sequenciais (`imagem_0001.png`, `imagem_0002.png`, ...)
+  - Formatos suportados: **PNG, JPG, TIFF** (configurável via parâmetro)
+  - Manter resolução original ou redimensionar (opção `resize_to`)
+  - Extração de metadados detalhados das imagens
+- **Metadados extraídos**:
+  - Dimensões originais (width, height)
+  - Espaço de cores (colorspace)
+  - DPI/resolução original
+  - Página de origem no PDF
+  - Formato original e formato de saída
+  - Tamanho do arquivo em bytes
+- **Arquivo de metadados**: `metadados_imagens.json` na pasta de saída
+- **Salvamento automático**: Mesmo diretório do arquivo de entrada
+  - Pasta padrão: `{nome}_imagens_{timestamp}/`
+  - Nomes sequenciais: `imagem_{NNNN}.{ext}` (ex: `imagem_0001.png`)
+- **Processamento profissional**:
+  - Thread dedicada com barra de progresso
+  - Contagem prévia de imagens por página
+  - Tratamento de erros robusto com rollback seguro
+
+#### Nova Funcionalidade: Divisão Avançada de PDFs
+- **Serviço PDFSplitterService expandido**:
+  - ✅ **Separar um PDF em múltiplos arquivos**: `split_to_individual_pages()`
+    - Cada página vira um arquivo PDF individual
+    - Nomeação: `{nome}_pagina_{N}.pdf`
+  - ✅ **Dividir por intervalos de páginas específicos**: `split_by_ranges()`
+    - Lista de tuplas [(start, end), ...]
+    - Nomeação: `{nome}_parte{N}_pag{start}-{end}.pdf`
+  - ✅ **Dividir por bookmarks existentes**: `split_by_bookmarks()`
+    - Extração automática de bookmarks/toc
+    - Cada bookmark vira um arquivo separado
+    - Nomeação: `{nome}_{titulo_secao}.pdf`
+    - Método auxiliar: `get_bookmarks()` para preview
+  - ✅ **Extrair páginas específicas**: `extract_specific_pages()`
+    - Páginas pares: `extract_specific_pages(pdf_path, "even")`
+    - Páginas ímpares: `extract_specific_pages(pdf_path, "odd")`
+    - Lista customizada: `extract_specific_pages(pdf_path, [1, 3, 5, 7])`
+    - Nomeação: `{nome}_pares.pdf`, `{nome}_impares.pdf`, `{nome}_selecionadas.pdf`
+- **Flexibilidade total**: Usuário escolhe estratégia de divisão
+- **Preservação de qualidade**: Todas divisões mantêm qualidade original
+
+### 🔧 Modificado
+
+#### Padronização de Salvamento (Atualizado)
+- **Política unificada reforçada**: Todos os serviços salvam no mesmo diretório do arquivo de entrada
+  - Cleaner: `{diretorio}/{nome}_limpo.{ext}`
+  - Merger: `{diretorio}/{primeiro_arquivo}_mesclado_{timestamp}.pdf`
+  - Splitter (páginas individuais): `{diretorio}/{nome}_pagina_{N}.pdf`
+  - Splitter (bookmarks): `{diretorio}/{nome}_{titulo_secao}.pdf`
+  - Splitter (intervalos): `{diretorio}/{nome}_parte{N}_pag{start}-{end}.pdf`
+  - Splitter (pares/ímpares): `{diretorio}/{nome}_pares.pdf` / `{nome}_impares.pdf`
+  - Compressor: `{diretorio}/{nome}_comprimido.pdf`
+  - Image Extractor: `{diretorio}/{nome}_imagens_{timestamp}/imagem_{NNNN}.{ext}`
+- **Timestamp em operações batch**: Evita sobrescrita acidental
+- **Pastas organizadas**: Extração de imagens cria subpasta dedicada
+
+#### Interface GUI (Planejado)
+- **Nova tab "🖼️ Extrair Imagens"** (implementação futura):
+  - Drag-and-drop de PDFs
+  - Seleção de formato (PNG, JPG, TIFF)
+  - Opção de redimensionamento
+  - Preview de quantas imagens serão extraídas
+  - Barra de progresso com contagem
+- **Nova tab "✂️ Dividir PDF (Avançado)"** (implementação futura):
+  - Seleção de estratégia: páginas individuais, intervalos, bookmarks, pares/ímpares
+  - Preview de bookmarks disponíveis
+  - Configuração de intervalos customizados
+  - Checkbox para páginas pares/ímpares
+
+### ✅ Testes de Regressão
+
+#### PDF Splitter Service
+```
+✅ Split por bookmarks: 4 seções extraídas com sucesso
+   - Arquivos criados: {nome}_{titulo_secao}.pdf
+   
+✅ Páginas pares: 2 páginas extraídas
+   - Arquivo: {nome}_pares.pdf
+   
+✅ Páginas ímpares: 2 páginas extraídas
+   - Arquivo: {nome}_impares.pdf
+   
+✅ Intervalos [(1,2), (3,4)]: 2 arquivos criados
+   - Arquivos: {nome}_parte1_pag1-2.pdf, {nome}_parte2_pag3-4.pdf
+```
+
+#### Image Extractor Service
+```
+✅ Extração PNG: 2/2 imagens extraídas
+   - Pasta: {nome}_imagens_{timestamp}/
+   - Arquivos: imagem_0001.png, imagem_0002.png
+   - Metadados: metadados_imagens.json gerado
+   
+✅ Extração JPG: 2/2 imagens extraídas
+   - Qualidade preservada
+   
+✅ Extração TIFF: 2/2 imagens extraídas
+   - Formato sem perdas
+   
+✅ Redimensionamento: 2/2 imagens redimensionadas
+   - Resolução ajustada conforme parâmetro resize_to
+```
+
+### 📦 Dependências Adicionais
+- `PyMuPDF>=1.23.0`: Extração de imagens e divisão de PDFs (já existente)
+- `Pillow>=10.0.0`: Processamento e conversão de formatos de imagem (já existente)
+
+---
+
+## [2.2.0] - 2024 - Limpeza de Arquivos e Mesclagem de PDFs
+
+### ✨ Adicionado
+
+#### Nova Funcionalidade: Limpeza de Arquivos de Texto (.txt, .md, .docx)
+- **Serviço CleanerService completo**: Pipeline EncodingDetector + TextCleaner
+- **EncodingDetector inteligente**: 
+  - Detecção automática (utf-8, latin-1, cp1252, iso-8859-1)
+  - Correção de caracteres pt-BR (acentos, cedilha, aspas inteligentes)
+  - Fallback com substituição para arquivos corrompidos
+- **TextCleaner com 12 técnicas**:
+  1. Remoção de BOM (Byte Order Mark)
+  2. Normalização CRLF → LF
+  3. Espaços múltiplos (preservando code blocks)
+  4. Trailing whitespace
+  5. Linhas em branco excessivas (máx 2 consecutivas)
+  6. Espaço antes de pontuação
+  7. Headers Markdown normalizados (# espaço)
+  8. Negrito/itálico sem espaços extras (**texto**)
+  9. Detecção de links vazios
+  10. Listas Markdown padronizadas
+  11. Hífens/traços normalizados
+  12. Newline final único
+- **Interface GUI moderna**:
+  - Drag-and-drop de múltiplos arquivos
+  - Processamento em thread com barra de progresso
+  - Resultados detalhados por arquivo
+  - Salvamento automático no mesmo diretório: `{nome}_limpo.{ext}`
+- **Degradação zero**: Preserva code blocks e formatação essencial
+- **Intervenção mínima**: Apenas correções necessárias
+
+#### Nova Funcionalidade: Mesclagem de PDFs
+- **Serviço PDFMergerService completo**:
+  - Seleção múltipla de PDFs (drag-and-drop + botão)
+  - Preview visual com informações: nome, nº páginas, tamanho formatado
+  - Reordenação flexível com botões ↑↓ (qualquer ordem)
+  - Remoção individual de arquivos da lista
+  - Opções configuráveis: bookmarks, compressão, separadores
+- **Processamento profissional**:
+  - Thread dedicada com barra de progresso
+  - Preservação de bookmarks/navegação original
+  - Compressão opcional para reduzir tamanho final
+  - Separadores entre arquivos (páginas em branco)
+- **Salvamento automático**: Mesmo diretório do primeiro arquivo
+  - Nome padrão: `{primeiro_arquivo}_mesclado_{timestamp}.pdf`
+  - Abertura automática da pasta após conclusão
+- **Tratamento de erros robusto**: Mensagens claras e rollback seguro
+
+### 🔧 Modificado
+
+#### Padronização de Salvamento
+- **Política unificada**: Todos os serviços salvam no mesmo diretório do arquivo de entrada
+  - Cleaner: `{diretorio}/{nome}_limpo.{ext}`
+  - Merger: `{diretorio}/{primeiro_arquivo}_mesclado_{timestamp}.pdf`
+  - Splitter: `{diretorio}/{nome}_pagina_{N}.pdf`
+  - Compressor: `{diretorio}/{nome}_comprimido.pdf`
+- **Sem diálogos desnecessários**: Salvamento automático com opção de abrir pasta
+- **Timestamp em operações batch**: Evita sobrescrita acidental
+
+#### Interface GUI
+- **Import datetime**: Adicionado suporte a timestamps
+- **Fluxo simplificado**: Menos cliques, mais produtividade
+- **Feedback consistente**: Mensagens padronizadas em todas tabs
+
+### ✅ Testes de Regressão
+
+#### Cleaner Service
+```
+✅ teste_encoding.txt - 7 limpezas aplicadas
+   - Encoding detectado: latin-1
+   - Linhas: 14 → 12, Chars: 270 → 255
+
+✅ teste.md - 7 limpezas aplicadas
+   - Encoding: utf-8
+   - Linhas: 14 → 11, Chars: 184 → 169
+```
+
+#### PDF Merger Service
+```
+✅ Criação de PDFs de teste: 3 arquivos
+✅ Obtenção de informações: nome, páginas, tamanho
+✅ Mesclagem bem-sucedida: 3 páginas totais
+✅ Reordenação funcional: move arquivos entre posições
+```
+
+### 📦 Dependências Adicionais
+- `python-docx`: Suporte a arquivos .docx
+- `PyPDF2`: Mesclagem de PDFs com bookmarks
+
+---
+
 ## [2.1.0] - 2024 - Interface Moderna e Funcionalidade DividirPDF
 
 ### ✨ Adicionado
