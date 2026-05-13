@@ -61,7 +61,6 @@ class ExtractorTab(ctk.CTkFrame):
         self.extractor = StreamingPDFExtractor()
         self.selected_files: List[str] = []
         self.extracted_text = ""
-        self.processing = False  # Flag para controle de cancelamento
         
         self._setup_ui()
     
@@ -77,7 +76,7 @@ class ExtractorTab(ctk.CTkFrame):
         
         title_label = ctk.CTkLabel(
             header_frame,
-            text="📄 EXTRAIR TEXTO DE PDF",
+            text="📄 Extrair Texto de PDF",
             font=ctk.CTkFont(size=20, weight="bold")
         )
         title_label.grid(row=0, column=0, sticky="w")
@@ -93,7 +92,7 @@ class ExtractorTab(ctk.CTkFrame):
         # Botões de ação
         btn_frame = ctk.CTkFrame(self, fg_color="transparent")
         btn_frame.grid(row=2, column=0, sticky="ew", padx=20, pady=10)
-        btn_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)
+        btn_frame.grid_columnconfigure((0, 1, 2), weight=1)
         
         self.select_btn = ModernButton(
             btn_frame,
@@ -128,18 +127,6 @@ class ExtractorTab(ctk.CTkFrame):
             fg_color="#4CAF50"
         )
         self.save_btn.grid(row=0, column=2, padx=8, pady=5)
-        
-        self.cancel_btn = ModernButton(
-            btn_frame,
-            text="❌ CANCELAR",
-            command=self.cancel_operation,
-            state="normal",
-            width=160,
-            height=45,
-            corner_radius=12,
-            fg_color="#F44336"
-        )
-        self.cancel_btn.grid(row=0, column=3, padx=8, pady=5)
         
         # Área de resultado
         result_frame = ShadowFrame(self, corner_radius=12)
@@ -209,10 +196,8 @@ class ExtractorTab(ctk.CTkFrame):
             messagebox.showwarning("Aviso", "Nenhum arquivo selecionado")
             return
         
-        self.processing = True
         self.process_btn.configure(state="disabled")
         self.select_btn.configure(state="disabled")
-        self.cancel_btn.configure(state="normal")
         self.progress_bar.set(0)
         self.result_text.configure(state="normal")
         self.result_text.delete("1.0", "end")
@@ -223,20 +208,6 @@ class ExtractorTab(ctk.CTkFrame):
         thread = threading.Thread(target=self._process_files, daemon=True)
         thread.start()
     
-    def cancel_operation(self):
-        """Cancela operação em andamento."""
-        if not self.processing:
-            return
-        
-        self.processing = False
-        self.status_label.configure(text="❌ Operação cancelada pelo usuário")
-        self.process_btn.configure(state="normal")
-        self.select_btn.configure(state="normal")
-        self.cancel_btn.configure(state="normal")
-        self.progress_bar.set(0)
-        self.percent_label.configure(text="0%")
-        logger.info("Operação de extração cancelada pelo usuário")
-    
     def _process_files(self):
         """Processa arquivos em segundo plano."""
         try:
@@ -244,9 +215,6 @@ class ExtractorTab(ctk.CTkFrame):
             processed_text = ""
             
             for i, file_path in enumerate(self.selected_files, 1):
-                if not self.processing:
-                    return  # Cancelado pelo usuário
-                
                 filename = Path(file_path).stem
                 
                 # Usa streaming para arquivos grandes
@@ -260,8 +228,6 @@ class ExtractorTab(ctk.CTkFrame):
                         file_path,
                         progress_callback=lambda curr, total_p: self._update_progress(curr, total_p, filename)
                     ):
-                        if not self.processing:
-                            return  # Cancelado durante streaming
                         if success:
                             page_texts.append(f"\n--- Página {page_num} ---\n{text}")
                         else:
@@ -283,8 +249,7 @@ class ExtractorTab(ctk.CTkFrame):
                 progress = i / total
                 self.after(0, lambda p=progress: self._update_progress_bar(p))
             
-            if self.processing:  # Só finaliza se não foi cancelado
-                self.after(0, lambda: self._finish_extraction(processed_text))
+            self.after(0, lambda: self._finish_extraction(processed_text))
             
         except Exception as e:
             logger.exception(f"Erro na extração: {e}")
@@ -314,19 +279,15 @@ class ExtractorTab(ctk.CTkFrame):
         self.status_label.configure(text="✅ Processamento concluído!")
         self.process_btn.configure(state="normal")
         self.select_btn.configure(state="normal")
-        self.cancel_btn.configure(state="normal")
         self.save_btn.configure(state="normal")
-        self.processing = False
     
     def _show_error(self, message: str):
         """Mostra mensagem de erro."""
         self.status_label.configure(text=f"❌ Erro: {message}")
         self.process_btn.configure(state="normal")
         self.select_btn.configure(state="normal")
-        self.cancel_btn.configure(state="normal")
         self.progress_bar.set(0)
         self.percent_label.configure(text="0%")
-        self.processing = False
         messagebox.showerror("Erro", message)
     
     def save_results(self):
@@ -426,18 +387,6 @@ class CompressorTab(ctk.CTkFrame):
             fg_color="#FF9800"
         )
         self.compress_btn.grid(row=0, column=2, padx=8, pady=5)
-        
-        self.cancel_btn = ModernButton(
-            ctrl_frame,
-            text="❌ CANCELAR",
-            command=self.cancel_operation,
-            state="normal",
-            width=160,
-            height=45,
-            corner_radius=12,
-            fg_color="#F44336"
-        )
-        self.cancel_btn.grid(row=0, column=3, padx=8, pady=5)
         
         # Informações do arquivo
         self.file_info_label = ctk.CTkLabel(
@@ -889,7 +838,6 @@ class CleanerTab(ctk.CTkFrame):
         self.cleaner = FileCleanerService()
         self.selected_files: List[str] = []
         self.cleaning_results: List[CleaningResult] = []
-        self.processing = False  # Flag para controle de cancelamento
         
         self._setup_ui()
     
@@ -929,7 +877,7 @@ class CleanerTab(ctk.CTkFrame):
         # Botões
         btn_frame = ctk.CTkFrame(self, fg_color="transparent")
         btn_frame.grid(row=2, column=0, sticky="ew", padx=20, pady=10)
-        btn_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)
+        btn_frame.grid_columnconfigure((0, 1, 2), weight=1)
         
         self.select_btn = ModernButton(
             btn_frame,
@@ -964,18 +912,6 @@ class CleanerTab(ctk.CTkFrame):
             fg_color="#4CAF50"
         )
         self.save_btn.grid(row=0, column=2, padx=8, pady=5)
-        
-        self.cancel_btn = ModernButton(
-            btn_frame,
-            text="❌ CANCELAR",
-            command=self.cancel_operation,
-            state="normal",
-            width=160,
-            height=45,
-            corner_radius=12,
-            fg_color="#F44336"
-        )
-        self.cancel_btn.grid(row=0, column=3, padx=8, pady=5)
         
         # Lista de arquivos
         list_frame = ShadowFrame(self, corner_radius=12)

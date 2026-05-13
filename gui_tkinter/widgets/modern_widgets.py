@@ -12,6 +12,23 @@ import customtkinter as ctk
 from tkinter import Canvas
 from typing import Optional, Callable, Tuple
 import math
+import os
+
+# Suporte a drag-and-drop de arquivos
+try:
+    from tkinterdnd2 import DND_FILES, TkinterDnD
+    DND_AVAILABLE = True
+except ImportError:
+    DND_AVAILABLE = False
+    DND_FILES = None
+
+# Logger
+try:
+    from logger import get_logger
+    logger = get_logger(__name__)
+except ImportError:
+    import logging
+    logger = logging.getLogger(__name__)
 
 
 class ModernButton(ctk.CTkButton):
@@ -303,9 +320,51 @@ class DropZoneFrame(ctk.CTkFrame):
         self.bind("<Enter>", self._on_enter)
         self.bind("<Leave>", self._on_leave)
         
-        # Nota: Tkinter puro não suporta drop nativo de arquivos
-        # Para suporte completo, usar biblioteca tkdnd ou customtkinter com extensão
-        # Esta é uma implementação básica visual
+        # Configura drop target se tkinterdnd2 estiver disponível
+        if DND_AVAILABLE and DND_FILES:
+            try:
+                # Converte o frame CTk para aceitar drops
+                self.drop_target_register(DND_FILES)
+                self.bind("<<Drop>>", self._on_drop)
+                self.bind("<<DragEnter>>", self._on_drag_enter)
+                self.bind("<<DragLeave>>", self._on_drag_leave)
+            except Exception as e:
+                logger.warning(f"Não foi possível configurar DnD: {e}")
+    
+    def _on_drag_enter(self, event):
+        """Handle drag enter."""
+        self.configure(border_color="#2196F3", fg_color="#2196F315")
+    
+    def _on_drag_leave(self, event):
+        """Handle drag leave."""
+        if not self.is_hovering:
+            self.configure(border_color="gray", fg_color="transparent")
+    
+    def _on_drop(self, event):
+        """Handle drop de arquivos."""
+        if self.on_drop:
+            # Parseia os caminhos dos arquivos dropped
+            files = []
+            data = event.data
+            
+            # Trata paths com espaços (envolvidos em {})
+            # Formato típico: {C:\path\file 1.pdf} {C:\path\file 2.pdf}
+            import re
+            # Extrai tudo que está entre chaves ou paths simples sem espaços
+            matches = re.findall(r'\{([^}]+)\}|(\S+)', data)
+            
+            for match in matches:
+                # Pega o grupo que não é None (ou dentro de {} ou path simples)
+                file_path = match[0] if match[0] else match[1]
+                clean_path = file_path.strip()
+                
+                if clean_path and os.path.isfile(clean_path):
+                    files.append(clean_path)
+            
+            if files:
+                self.on_drop(files)
+                self.set_active(True)
+                self.after(1000, lambda: self.set_active(False))
     
     def _on_enter(self, event):
         """Handle mouse enter."""
