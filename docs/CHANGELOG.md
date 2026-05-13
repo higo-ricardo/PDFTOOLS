@@ -6,9 +6,114 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ---
 
-## [2.3.0] - 2024 - Extração de Imagens e Divisão Avançada de PDFs
+## [2.4.0] - Em Desenvolvimento - Fila de Processamento, Pré-visualização Inteligente e BaseProcessTab
+
+### 🚧 Em Implementação (Planejado)
+
+#### Fila de Processamento Inteligente (TaskQueueService)
+- **Planejado**: Novo módulo `core/task_queue.py` com sistema de filas assíncronas
+- **Objetivos**:
+  - Evitar travamentos da UI durante operações pesadas
+  - Suporte a prioridades (LOW, NORMAL, HIGH, CRITICAL)
+  - Cancelamento seguro de tarefas
+  - Callbacks para progresso em tempo real
+  - Worker thread dedicado para processamento sequencial
+- **Status**: ⏳ Pendente de implementação
+
+#### Pré-visualização Inteligente (PreviewEngine)
+- **Planejado**: Novo módulo `core/preview_engine.py` para estimativas detalhadas
+- **Objetivos**:
+  - Calcular tamanho estimado de arquivos antes da execução
+  - Estimar tempo de processamento baseado no histórico
+  - Preview de metadados completos (páginas, imagens, bookmarks)
+  - Cálculo assíncrono sem bloquear UI
+- **Status**: ⏳ Pendente de implementação
+
+#### Classe BaseProcessTab
+- **Planejado**: Novo módulo `gui_tkinter/tabs/base_tab.py`
+- **Objetivos**:
+  - Centralizar ciclo de vida comum das tabs
+  - Padronizar integração com TaskQueueService
+  - Gerenciar estado e callbacks de forma uniforme
+  - Reduzir código repetitivo em ~40%
+- **Status**: ⏳ Pendente de implementação
+
+#### Correções de Drag-and-Drop e Ordenação
+- **Planejado**: Melhorias no sistema de drag-and-drop nativo
+- **Objetivos**:
+  - Resolver problemas de detecção de drop no Linux
+  - Corrigir botões de cancelar durante processamento
+  - Melhorar ordenação na mesclagem de PDFs
+  - Adicionar feedback visual aprimorado
+- **Status**: ⏳ Pendente de implementação
+
+#### Componentização de Elementos de Interface
+- **Planejado**: Tabela de elementos candidate à componentização
+- **Elementos Prioritários**:
+  1. 🔴 Barra de Progresso com Status (Crítica)
+  2. 🟠 Painel de Configurações (Alta)
+  3. 🟠 Área de Logs/Console (Alta)
+  4. 🟡 Card de Estatísticas (Média)
+  5. 🟡 Botão de Ação Principal (Média)
+  6. 🟢 Seletor de Diretório (Baixa)
+  7. 🟠 Lista de Arquivos com Ações em Lote (Alta)
+  8. 🟡 Preview de Metadados do PDF (Média)
+- **Status**: ⏳ Pendente de implementação
+
+---
+
+## [2.3.0] - 2024 - Widgets Reutilizáveis, ThemeManager, Extração de Imagens e Divisão Avançada de PDFs
 
 ### ✨ Adicionado
+
+#### Biblioteca de Widgets Reutilizáveis (W01-W12)
+- **Novo módulo `gui_tkinter/widgets/widgets.py`** com 12 componentes reutilizáveis:
+  - **W01 - NumericEntryPair**: Entry numérico com botões +/- e validação de range
+  - **W02 - TooltipCheckbox**: Checkbox com tooltip explicativo ao passar mouse
+  - **W03 - FormatSelector**: Combobox para seleção de formatos com opções dinâmicas
+  - **W04 - FilePickerButton**: Botão file picker com display de path e múltiplos modos
+  - **W05 - SectionSeparator**: Separador seccional com título centralizado
+  - **W06 - DynamicStatusArea**: Área de status com ícone e cor dinâmica por tipo
+  - **W07 - MetadataGrid**: Grid scrollável para exibição de metadados chave-valor
+  - **W08 - ValueSlider**: Slider horizontal com valor visível em tempo real
+  - **W09 - ClearListButton**: Botão de limpar lista com confirmação opcional
+  - **W10 - ProcessingIndicator**: Indicador animado de processamento com spinner
+  - **W11 - SummaryCard**: Card de resumo final com estatísticas da operação
+  - **W12 - SmartIntervalInput**: Input inteligente de intervalos (1-10, 1,2,3) com validação
+- **Benefícios**:
+  - Redução de código repetitivo em até 60% nas tabs da interface
+  - Consistência visual garantida em toda aplicação
+  - Manutenção simplificada com mudanças centralizadas
+  - Documentação integrada via docstrings
+  - Testabilidade aprimorada com componentes isolados
+- **Exportações**: Todos widgets disponíveis via `gui_tkinter.widgets.__init__.py`
+
+#### ThemeManager - Gerenciador de Temas Claro/Escuro
+- **Novo módulo `gui_tkinter/theme_manager.py`** com sistema completo de temas:
+  - **Alternância instantânea**: Toggle entre modo claro e escuro
+  - **Persistência de preferência**: Salva em `~/.pdf_tools/theme_config.json`
+  - **Cobertura total**: CustomTkinter + widgets nativos Tkinter
+  - **Paletas centralizadas**: `ColorPalette` com 24+ cores configuráveis
+  - **Notificação de mudança**: Componentes registrados são atualizados automaticamente
+  - **Singleton global**: `get_theme_manager()` para acesso centralizado
+  - **Botão pré-configurado**: `create_theme_toggle_button()` para UI rápida
+- **Classes e Funções**:
+  - `ThemeManager`: Classe principal com todas funcionalidades
+  - `ColorPalette`: Dataclass com definições de cores
+  - `DARK_PALETTE`: Paleta escura profissional (#1E1E1E, #64B5F6)
+  - `LIGHT_PALETTE`: Paleta clara padrão (#FFFFFF, #2196F3)
+  - `get_theme_manager()`: Singleton para instância global
+  - `apply_theme_to_widget()`: Utilitário para aplicação manual
+- **Recursos Avançados**:
+  - Registro de componentes para atualização automática
+  - Cores customizadas por tipo de widget
+  - Callbacks personalizáveis para mudanças de tema
+  - Tratamento de erros robusto em atualizações
+- **Integração**: Exportado via `gui_tkinter.__init__.py`
+
+#### Correção: BOM no dialogs.py
+- Removido BOM (Byte Order Mark) do início do arquivo `gui_tkinter/dialogs.py`
+- Resolve erro de sintaxe em ambientes Linux/Unix
 
 #### Nova Funcionalidade: Extração de Imagens de PDFs
 - **Serviço ImageExtractorService completo**:
