@@ -1,10 +1,10 @@
-# 📋 BACKLOG - PDF Tools v2.1
+# 📋 BACKLOG - PDF Tools v2.4
 
 Controle de qualidade e evolução do produto.
 
 **Última atualização:** 2024-05-13  
-**Versão atual:** 2.1.0  
-**Próxima release:** 2.2.0 (Testes & CI/CD)
+**Versão atual:** 2.3.0  
+**Próxima release:** 2.4.0 (Fila de Processamento, Preview Inteligente e Componentização)
 
 ---
 
@@ -39,12 +39,32 @@ Controle de qualidade e evolução do produto.
 - [x] Feedback visual mostrando arquivo/página sendo processada
 - [x] Baixo acoplamento GUI ↔ Core
 
-### Fase 3 🔄 - Em Desenvolvimento (v2.2.0)
+### Fase 3 ✅ - Widgets Reutilizáveis e ThemeManager (COMPLETO - v2.3.0)
+- [x] Biblioteca de Widgets Reutilizáveis (W01-W12)
+  - [x] W01 - NumericEntryPair: Entry numérico com botões +/- 
+  - [x] W02 - TooltipCheckbox: Checkbox com tooltip
+  - [x] W03 - FormatSelector: Seletor de formato (Combobox)
+  - [x] W04 - FilePickerButton: Botão file picker
+  - [x] W05 - SectionSeparator: Separador seccional
+  - [x] W06 - DynamicStatusArea: Área de status dinâmico
+  - [x] W07 - MetadataGrid: Grid de metadados
+  - [x] W08 - ValueSlider: Slider com valor visível
+  - [x] W09 - ClearListButton: Botão limpar lista
+  - [x] W10 - ProcessingIndicator: Indicador de processamento
+  - [x] W11 - SummaryCard: Card de resumo
+  - [x] W12 - SmartIntervalInput: Input de intervalo inteligente
+- [x] ThemeManager - Gerenciador de Temas Claro/Escuro
+  - [x] Alternância instantânea entre temas
+  - [x] Persistência de preferência em JSON
+  - [x] Cobertura total de widgets CustomTkinter
+  - [x] Paletas de cores configuráveis
+  - [x] Registro de componentes para atualização automática
 - [ ] Testes unitários com pytest (cobertura >80%)
   - [ ] Tests para ExtractorService
   - [ ] Tests para CompressorService
   - [ ] Tests para SplitterService
   - [ ] Tests para validators
+  - [ ] Tests para widgets (W01-W12)
 - [ ] Integração contínua (GitHub Actions)
   - [ ] Pipeline de testes
   - [ ] Build automatizado
@@ -52,22 +72,56 @@ Controle de qualidade e evolução do produto.
 - [ ] Documentação Sphinx/API
 - [ ] Pacote PyPI para distribuição
 
-### Fase 4 📅 - Planejamento Futuro (v2.3.0+)
+### Fase 4 🔄 - Em Desenvolvimento (v2.4.0)
+- [ ] **Fila de Processamento Inteligente (TaskQueueService)**
+  - [ ] Módulo `core/task_queue.py` com sistema de filas assíncronas
+  - [ ] Suporte a prioridades (LOW, NORMAL, HIGH, CRITICAL)
+  - [ ] Cancelamento seguro de tarefas
+  - [ ] Callbacks para progresso em tempo real
+  - [ ] Worker thread dedicado para processamento sequencial
+  - [ ] Integração com todas as tabs de processamento
+  
+- [ ] **Pré-visualização Inteligente (PreviewEngine)**
+  - [ ] Módulo `core/preview_engine.py` para estimativas detalhadas
+  - [ ] Calcular tamanho estimado de arquivos antes da execução
+  - [ ] Estimar tempo de processamento baseado no histórico
+  - [ ] Preview de metadados completos (páginas, imagens, bookmarks)
+  - [ ] Cálculo assíncrono sem bloquear UI
+  - [ ] Componente `PreviewPanel` na interface
+  
+- [ ] **Classe BaseProcessTab**
+  - [ ] Módulo `gui_tkinter/tabs/base_tab.py`
+  - [ ] Centralizar ciclo de vida comum das tabs
+  - [ ] Padronizar integração com TaskQueueService
+  - [ ] Gerenciar estado e callbacks de forma uniforme
+  - [ ] Reduzir código repetitivo em ~40%
+  - [ ] Refatorar MergeTab, CompressTab, SplitTab para herdar da base
+  
+- [ ] **Correções de Drag-and-Drop e Ordenação**
+  - [ ] Resolver problemas de detecção de drop no Linux
+  - [ ] Corrigir botões de cancelar durante processamento
+  - [ ] Melhorar ordenação na mesclagem de PDFs
+  - [ ] Adicionar feedback visual aprimorado
+  
+- [ ] **Componentização de Elementos de Interface**
+  - [x] Tabela de elementos candidatos à componentização definida
+  - [ ] 🔴 Barra de Progresso com Status (Crítica) - Unificar estilos e integração com threading
+  - [ ] 🟠 Painel de Configurações (Alta) - ConfigPanel genérico para campos
+  - [ ] 🟠 Área de Logs/Console (Alta) - LogConsole com scroll e cores por nível
+  - [ ] 🟡 Card de Estatísticas (Média) - StatsCard reutilizável
+  - [ ] 🟡 Botão de Ação Principal (Média) - ActionButton com estados
+  - [ ] 🟢 Seletor de Diretório (Baixa) - OutputPathSelector com validação
+  - [ ] 🟠 Lista de Arquivos com Ações em Lote (Alta) - FileListManager completo
+  - [ ] 🟡 Preview de Metadados do PDF (Média) - MetadataPreviewComponent
+
+### Fase 5 📅 - Planejamento Futuro (v2.5.0+)
 - [ ] OCR para PDFs escaneados (tesseract)
 - [ ] Conversão PDF ↔ Word
-- [ ] Merge de múltiplos PDFs
+- [ ] Merge de múltiplos PDFs avançado
 - [ ] Adição de marca d'água
 - [ ] Criptografia/descriptografia de PDFs
 - [ ] Plugin system para extensões
-- [ ] Modo batch avançado com filas
-
-### Fase 3 📅 - Planejamento Futuro
-- [ ] OCR para PDFs escaneados
-- [ ] Conversão PDF ↔ Word
-- [ ] Merge de múltiplos PDFs
-- [ ] Adição de marca d'água
-- [ ] Criptografia/descriptografia
-- [ ] Plugin system para extensões
+- [ ] Modo batch avançado com filas prioritárias
 
 ---
 

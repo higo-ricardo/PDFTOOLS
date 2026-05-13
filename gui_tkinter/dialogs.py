@@ -1,4 +1,4 @@
-﻿"""
+"""
 Componentes reutilizaveis de dialogos e listagens para Tkinter.
 
 Inclui:

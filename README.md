@@ -18,6 +18,8 @@ Uma aplicação moderna e modular para manipulação de PDFs com interface gráf
 - 🚀 **Streaming**: Processa arquivos grandes (>50MB) sem vazamento de memória
 - 📊 **Preview Universal**: Visualize conteúdo antes de processar
 - 🔒 **Validação Robusta**: Verifica integridade do PDF antes de processar
+- 🎭 **ThemeManager**: Alternância instantânea entre temas claro/escuro com persistência
+- 🧩 **Widgets Reutilizáveis**: 12 componentes padronizados (W01-W12) para consistência visual
 
 ## REQUISITOS
 
@@ -49,6 +51,201 @@ PyPDF2>=3.0.0
 - **Pillow**: Processamento de imagens para thumbnails e conversão de formatos
 - **python-docx**: Leitura e manipulação de arquivos .docx (Word)
 - **PyPDF2**: Mesclagem de PDFs com preservação de bookmarks
+
+## 🧩 Widgets Reutilizáveis (W01-W12)
+
+A partir da versão 2.3.0, o projeto inclui uma biblioteca de widgets reutilizáveis para acelerar o desenvolvimento de interfaces consistentes e manter a qualidade visual.
+
+### Lista de Widgets
+
+| ID | Widget | Descrição | Uso Principal |
+|----|--------|-----------|---------------|
+| **W01** | `NumericEntryPair` | Par Label + Entry Numérico com botões +/- | Configuração de valores numéricos (ex: nível de compressão) |
+| **W02** | `TooltipCheckbox` | Checkbox com tooltip explicativo | Opções com descrição adicional |
+| **W03** | `FormatSelector` | Seletor de Formato (Combobox) | Seleção de formatos de saída (PDF, TXT, PNG, etc.) |
+| **W04** | `FilePickerButton` | Botão de Arquivo (File Picker) | Seleção de arquivos/diretórios com path display |
+| **W05** | `SectionSeparator` | Separador Seccional com Título | Divisão visual de seções no layout |
+| **W06** | `DynamicStatusArea` | Área de Status Dinâmico | Mensagens de status com ícone e cor dinâmica |
+| **W07** | `MetadataGrid` | Grid de Metadados (Read-only) | Exibição de metadados chave-valor |
+| **W08** | `ValueSlider` | Slider com Valor Visível | Controle deslizante com valor em tempo real |
+| **W09** | `ClearListButton` | Botão de Limpar Lista | Limpeza de listas com confirmação opcional |
+| **W10** | `ProcessingIndicator` | Indicador de "Processando..." | Feedback visual de processamento animado |
+| **W11** | `SummaryCard` | Card de Resumo Final | Estatísticas de operação concluída |
+| **W12** | `SmartIntervalInput` | Input de Intervalo Inteligente | Entrada de intervalos (ex: 1-10, 1,2,3) com validação |
+
+### Como Usar os Widgets
+
+```python
+from gui_tkinter.widgets import (
+    NumericEntryPair,      # W01
+    TooltipCheckbox,       # W02
+    FormatSelector,        # W03
+    FilePickerButton,      # W04
+    SectionSeparator,      # W05
+    DynamicStatusArea,     # W06
+    MetadataGrid,          # W07
+    ValueSlider,           # W08
+    ClearListButton,       # W09
+    ProcessingIndicator,   # W10
+    SummaryCard,           # W11
+    SmartIntervalInput,    # W12
+)
+
+# Exemplo: W01 - Entry Numérico
+numeric_input = NumericEntryPair(
+    master=frame,
+    label_text="Nível de Compressão",
+    default_value=5,
+    min_value=1,
+    max_value=10,
+    command=lambda v: print(f"Valor: {v}")
+)
+
+# Exemplo: W12 - Intervalo Inteligente
+interval_input = SmartIntervalInput(
+    master=frame,
+    label_text="Páginas para Extrair",
+    min_value=1,
+    max_value=100,
+    command=lambda pages: process_pages(pages)
+)
+```
+
+### Benefícios da Componentização
+
+✅ **Redução de Código Repetitivo**: Widgets prontos para uso em múltiplas tabs  
+✅ **Consistência Visual**: Padrão estético uniforme em toda interface  
+✅ **Manutenção Simplificada**: Mudanças em um widget refletem em todos usos  
+✅ **Documentação Integrada**: Cada widget tem docstrings detalhadas  
+✅ **Testabilidade**: Componentes isolados facilitam testes unitários
+
+## 🎨 ThemeManager - Temas Claro/Escuro
+
+A partir da versão 2.3.0, o projeto inclui um sistema completo de gerenciamento de temas com alternância instantânea entre modo claro e escuro.
+
+### Recursos Principais
+
+✅ **Alternância Instantânea**: Toggle entre temas sem reiniciar a aplicação  
+✅ **Persistência Automática**: Preferência salva em `~/.pdf_tools/theme_config.json`  
+✅ **Cobertura Total**: CustomTkinter + widgets nativos Tkinter  
+✅ **Paletas Centralizadas**: 24+ cores configuráveis via `ColorPalette`  
+✅ **Atualização Automática**: Componentes registrados são atualizados em tempo real  
+✅ **Singleton Global**: Acesso via `get_theme_manager()`  
+
+### Como Usar
+
+```python
+from gui_tkinter import (
+    get_theme_manager,
+    ThemeManager,
+    DARK_PALETTE,
+    LIGHT_PALETTE,
+    apply_theme_to_widget,
+)
+
+# Obter instância singleton
+theme_mgr = get_theme_manager()
+
+# Alternar tema (claro <-> escuro)
+novo_tema = theme_mgr.toggle_theme()
+print(f"Tema atual: {novo_tema}")  # 'dark' ou 'light'
+
+# Definir tema específico
+theme_mgr.set_theme("dark")
+
+# Acessar cores do tema atual
+bg_color = theme_mgr.get_color("primary_bg")
+accent = theme_mgr.get_color("accent_color")
+
+# Registrar componente para atualização automática
+theme_mgr.register_component(my_frame, callback=lambda t: print(f"Tema: {t}"))
+
+# Criar botão de toggle pré-configurado
+toggle_btn = theme_mgr.create_theme_toggle_button(
+    master=header_frame,
+    command=lambda: print("Tema alterado!")
+)
+
+# Aplicar tema manualmente a um widget
+apply_theme_to_widget(my_widget, theme_mgr)
+```
+
+### Paletas de Cores
+
+**Modo Escuro (`DARK_PALETTE`):**
+- Fundo: `#1E1E1E` (cinza muito escuro)
+- Frames: `#2D2D2D` (cinza escuro)
+- Cards: `#383838` (cinza médio)
+- Texto: `#FFFFFF` (branco)
+- Accent: `#64B5F6` (azul claro)
+- Borda: `#404040` (cinza escuro)
+
+**Modo Claro (`LIGHT_PALETTE`):**
+- Fundo: `#FFFFFF` (branco)
+- Frames: `#F5F5F5` (cinza muito claro)
+- Cards: `#FFFFFF` (branco)
+- Texto: `#1A1A1A` (preto suave)
+- Accent: `#2196F3` (azul Material Design)
+- Borda: `#E0E0E0` (cinza claro)
+
+### Integração na Interface
+
+Para adicionar toggle de tema na sua aplicação:
+
+```python
+import customtkinter as ctk
+from gui_tkinter import get_theme_manager
+
+class MyApp(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        
+        # Obtém gerenciador de temas
+        self.theme_mgr = get_theme_manager()
+        
+        # Header
+        header = ctk.CTkFrame(self)
+        header.pack(fill="x", padx=10, pady=5)
+        
+        # Título
+        title = ctk.CTkLabel(header, text="PDF Tools")
+        title.pack(side="left", padx=10)
+        
+        # Botão de toggle de tema
+        theme_btn = self.theme_mgr.create_theme_toggle_button(
+            master=header,
+            command=self._on_theme_changed
+        )
+        theme_btn.pack(side="right", padx=10)
+    
+    def _on_theme_changed(self):
+        print(f"Tema alterado para: {self.theme_mgr.current_theme}")
+
+# Executar
+app = MyApp()
+app.mainloop()
+```
+
+### Persistência
+
+O ThemeManager automaticamente:
+- **Salva** preferência ao alternar temas
+- **Carrega** preferência ao iniciar aplicação
+- **Local**: `~/.pdf_tools/theme_config.json`
+- **Formato**: JSON simples `{"theme": "dark"}`
+
+### API Completa
+
+| Método | Descrição | Retorna |
+|--------|-----------|---------|
+| `get_theme_manager()` | Singleton global | `ThemeManager` |
+| `toggle_theme()` | Alterna claro/escuro | `str` (novo tema) |
+| `set_theme(theme)` | Define tema específico | `None` |
+| `get_color(name)` | Obtém cor por nome | `str` (hex) |
+| `get_all_colors()` | Todas as cores | `Dict[str, str]` |
+| `register_component(widget, cb)` | Registra componente | `None` |
+| `unregister_component(widget)` | Remove componente | `None` |
+| `create_theme_toggle_button(master, cmd)` | Cria botão toggle | `CTkButton` |
 
 ## COMO EXECUTAR
 
@@ -229,6 +426,15 @@ PyPDF2>=3.0.0
 - **Pasta Organizada**: `{nome}_imagens_{timestamp}/`
 
 ### 🔜 Em Planejamento (v2.4+)
+
+**Fila de Processamento e Componentização:**
+- **TaskQueueService**: Fila de processamento inteligente com prioridades e cancelamento
+- **PreviewEngine**: Pré-visualização inteligente com estimativas de tamanho e tempo
+- **BaseProcessTab**: Classe base para padronizar ciclo de vida das tabs
+- **Componentes de Interface**: Barra de progresso unificada, painel de configs, área de logs
+- **Correções**: Melhorias no drag-and-drop e ordenação na mesclagem
+
+**Funcionalidades Avançadas:**
 - **Interface GUI**: Implementar tabs "Extrair Imagens" e "Dividir Avançado"
 - **OCR Integrado**: Tesseract para PDFs escaneados
 - **Marca D'água**: Adicionar logos/textos
