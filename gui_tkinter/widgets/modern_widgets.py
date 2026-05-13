@@ -311,7 +311,7 @@ class DropZoneFrame(ctk.CTkFrame):
         """Handle mouse enter."""
         if not self.is_hovering:
             self.is_hovering = True
-            self.configure(border_color="#2196F3", fg_color="#2196F308")
+            self.configure(border_color="#2196F3", fg_color="#2196F3")
     
     def _on_leave(self, event):
         """Handle mouse leave."""
@@ -322,6 +322,6 @@ class DropZoneFrame(ctk.CTkFrame):
     def set_active(self, active: bool):
         """Ativa/desativa estado visual."""
         if active:
-            self.configure(border_color="#4CAF50", fg_color="#4CAF5008")
+            self.configure(border_color="#4CAF50", fg_color="#4CAF50")
         else:
             self.configure(border_color="gray", fg_color="transparent")

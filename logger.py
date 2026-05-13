@@ -91,7 +91,7 @@ class LoggerConfig:
         
         date_format = "%Y-%m-%d %H:%M:%S" if include_timestamp else None
         
-        formatter = logging.Formatter(log_format, date_format=date_format)
+        formatter = logging.Formatter(log_format, datefmt=date_format)
         
         # Handler para arquivo com rotação
         file_handler = RotatingFileHandler(

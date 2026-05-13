@@ -2,15 +2,17 @@
 """
 Serviço de Mesclagem de PDFs
 Permite unir múltiplos PDFs em qualquer ordem, com opções de bookmarks e compressão.
+
+Usa PyMuPDF (fitz) como backend para consistência com demais serviços.
 """
 
+import fitz  # PyMuPDF
 import os
 from pathlib import Path
 from typing import List, Optional, Tuple
 from dataclasses import dataclass, field
 import logging
 from datetime import datetime
-from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 
 logger = logging.getLogger(__name__)
 
@@ -78,8 +80,9 @@ class PDFMergerService:
                 logger.error(f"Não é um PDF: {filepath}")
                 return None
             
-            reader = PdfReader(filepath)
-            num_pages = len(reader.pages)
+            doc = fitz.open(filepath)
+            num_pages = len(doc)
+            doc.close()
             file_size = path.stat().st_size
             
             return PDFFileInfo(
@@ -141,13 +144,15 @@ class PDFMergerService:
             output_path = str(output_dir / f"{first_file.stem}_mesclado_{timestamp}.pdf")
         
         try:
-            merger = PdfMerger()
+            merged_doc = fitz.open()
             total_pages = 0
             messages = []
+            toc_entries = []
             
             for i, pdf_path in enumerate(pdf_files):
                 path = Path(pdf_path)
                 if not path.exists():
+                    merged_doc.close()
                     return MergeResult(
                         sucesso=False,
                         caminho_saida="",
@@ -158,32 +163,33 @@ class PDFMergerService:
                     )
                 
                 try:
-                    reader = PdfReader(pdf_path)
-                    num_pages = len(reader.pages)
+                    src_doc = fitz.open(pdf_path)
+                    num_pages = len(src_doc)
+                    
+                    # Bookmark de nível 1 apontando para a primeira página deste PDF
+                    if keep_bookmarks:
+                        toc_entries.append([1, path.stem, total_pages + 1])
+                    
+                    # Insere todas as páginas
+                    merged_doc.insert_pdf(src_doc)
                     total_pages += num_pages
                     
-                    # Adiciona ao merger
-                    merger.append(
-                        pdf_path,
-                        outline_item=path.stem if keep_bookmarks else None
-                    )
+                    src_doc.close()
                     
                     messages.append(f"✓ {path.name} ({num_pages} págs)")
                     
                     # Adiciona separador (página em branco) se solicitado
                     if add_separators and i < len(pdf_files) - 1:
-                        # Cria página em branco como separador
-                        writer = PdfWriter()
-                        first_page = reader.pages[0]
-                        writer.add_blank_page(
-                            width=first_page.mediabox.width,
-                            height=first_page.mediabox.height
-                        )
-                        # Nota: PyPDF2 não suporta facilmente páginas em branco customizadas
-                        # Esta é uma implementação simplificada
-                        messages.append(f"  → Separador adicionado")
+                        # Usa dimensão da última página inserida
+                        last_page = merged_doc[-1]
+                        w = last_page.rect.width
+                        h = last_page.rect.height
+                        merged_doc.new_page(width=w, height=h)
+                        total_pages += 1
+                        messages.append("  → Separador adicionado")
                         
                 except Exception as e:
+                    merged_doc.close()
                     return MergeResult(
                         sucesso=False,
                         caminho_saida="",
@@ -193,11 +199,18 @@ class PDFMergerService:
                         erro=f"Erro ao processar {path.name}: {str(e)}"
                     )
             
-            # Escreve arquivo final
-            with open(output_path, 'wb') as f:
-                merger.write(f)
+            # Aplica bookmarks (Table of Contents)
+            if keep_bookmarks and toc_entries:
+                merged_doc.set_toc(toc_entries)
             
-            merger.close()
+            # Salva arquivo final
+            save_kwargs = {}
+            if compress:
+                save_kwargs["deflate"] = True
+                save_kwargs["garbage"] = 4
+            
+            merged_doc.save(output_path, **save_kwargs)
+            merged_doc.close()
             
             # Obtém tamanho final
             final_size = Path(output_path).stat().st_size
@@ -279,173 +292,3 @@ class PDFMergerService:
         removed = new_list.pop(index)
         
         return new_list, removed
-
-
-def create_test_pdfs(output_dir: str = "/tmp/merge_test") -> List[str]:
-    """
-    Cria PDFs de teste para validação usando reportlab ou fallback.
-    
-    Returns:
-        List[str]: Lista de caminhos dos PDFs criados
-    """
-    output_path = Path(output_dir)
-    output_path.mkdir(exist_ok=True)
-    
-    # Tenta usar reportlab primeiro
-    try:
-        from reportlab.lib.pagesizes import letter
-        from reportlab.pdfgen import canvas
-        
-        pdf_files = []
-        
-        for i in range(3):
-            pdf_path = output_path / f"teste_{i+1}.pdf"
-            c = canvas.Canvas(str(pdf_path), pagesize=letter)
-            c.setFont("Helvetica-Bold", 24)
-            c.drawString(100, 700, f"PDF de Teste {i+1}")
-            c.setFont("Helvetica", 12)
-            c.drawString(100, 650, f"Este é o arquivo {i+1} de teste para mesclagem.")
-            c.drawString(100, 630, f"Páginas: {i+1}")
-            c.save()
-            pdf_files.append(str(pdf_path))
-        
-        return pdf_files
-    
-    except ImportError:
-        pass
-    
-    # Fallback: tenta fitz (PyMuPDF)
-    try:
-        import fitz
-        
-        pdf_files = []
-        
-        for i in range(3):
-            pdf_path = output_path / f"teste_{i+1}.pdf"
-            doc = fitz.open()
-            page = doc.new_page()
-            
-            text_point = fitz.Point(100, 100)
-            page.insert_text(text_point, f"PDF de Teste {i+1}", fontsize=24, fontname="helv")
-            page.insert_text(fitz.Point(100, 130), f"Este é o arquivo {i+1} de teste para mesclagem.", fontsize=12, fontname="helv")
-            page.insert_text(fitz.Point(100, 150), f"Páginas: {i+1}", fontsize=12, fontname="helv")
-            
-            doc.save(str(pdf_path))
-            doc.close()
-            pdf_files.append(str(pdf_path))
-        
-        return pdf_files
-    
-    except ImportError:
-        pass
-    
-    # Último fallback: cria PDFs manualmente com estrutura mínima
-    pdf_files = []
-    for i in range(3):
-        pdf_path = output_path / f"teste_{i+1}.pdf"
-        # PDF mínimo válido (apenas para teste de mesclagem)
-        pdf_content = b"%PDF-1.4\\n1 0 obj\\n<< /Type /Catalog /Pages 2 0 R >>\\nendobj\\n2 0 obj\\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\\nendobj\\n3 0 obj\\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\\nendobj\\nxref\\n0 4\\n0000000000 65535 f \\n0000000009 00000 n \\n0000000058 00000 n \\n0000000115 00000 n \\ntrailer\\n<< /Size 4 /Root 1 0 R >>\\nstartxref\\n193\\n%%EOF"
-        with open(pdf_path, 'wb') as f:
-            f.write(pdf_content)
-        pdf_files.append(str(pdf_path))
-    
-    return pdf_files
-
-
-def run_tests():
-    """Executa testes de regressão."""
-    print("=" * 60)
-    print("TESTES DE REGRESSÃO - PDF MERGER SERVICE")
-    print("=" * 60)
-    
-    service = PDFMergerService()
-    
-    # Cria PDFs de teste
-    print("\n📄 Criando PDFs de teste...")
-    test_pdfs = create_test_pdfs()
-    
-    if len(test_pdfs) < 2:
-        print("❌ Falha ao criar PDFs de teste")
-        return False
-    
-    print(f"✅ {len(test_pdfs)} PDFs criados")
-    
-    # Testa obtenção de informações
-    print("\n📋 Testando obtenção de informações...")
-    for pdf in test_pdfs:
-        info = service.get_pdf_info(pdf)
-        if info:
-            print(f"   ✓ {info.nome}: {info.num_paginas} págs, {info.tamanho_formatado}")
-        else:
-            print(f"   ✗ Falha ao ler {pdf}")
-            return False
-    
-    # Testa mesclagem
-    print("\n🔗 Testando mesclagem...")
-    output_path = "/tmp/merge_test/resultado.pdf"
-    
-    result = service.merge_pdfs(
-        pdf_files=test_pdfs,
-        output_path=output_path,
-        keep_bookmarks=True,
-        add_separators=False,
-        compress=True
-    )
-    
-    if result.sucesso:
-        print(f"✅ Mesclagem bem-sucedida!")
-        print(f"   Arquivo: {Path(output_path).name}")
-        print(f"   Páginas totais: {result.num_paginas_total}")
-        print(f"   Tamanho: {result.tamanho_final} bytes")
-        for msg in result.mensagens:
-            print(f"   {msg}")
-    else:
-        print(f"❌ Falha na mesclagem: {result.erro}")
-        return False
-    
-    # Testa reordenação
-    print("\n🔄 Testando reordenação...")
-    files_info = [service.get_pdf_info(pdf) for pdf in test_pdfs]
-    files_info = [f for f in files_info if f is not None]
-    
-    if len(files_info) >= 2:
-        original_order = [f.nome for f in files_info]
-        reordered = service.reorder_files(files_info, 0, 2)  # Move primeiro para último
-        new_order = [f.nome for f in reordered]
-        
-        print(f"   Original: {original_order}")
-        print(f"   Reordenado: {new_order}")
-        
-        if new_order != original_order:
-            print("   ✅ Reordenação funcionou")
-        else:
-            print("   ⚠️ Reordenação pode ter falhado")
-    
-    print("\n" + "=" * 60)
-    print("✅ TODOS OS TESTES PASSARAM")
-    print("=" * 60)
-    
-    return True
-
-
-if __name__ == "__main__":
-    import sys
-    
-    if len(sys.argv) > 1 and sys.argv[1] == "--test":
-        success = run_tests()
-        sys.exit(0 if success else 1)
-    elif len(sys.argv) > 2:
-        # Modo CLI: python pdf_merger.py output.pdf input1.pdf input2.pdf ...
-        output = sys.argv[1]
-        inputs = sys.argv[2:]
-        
-        service = PDFMergerService()
-        result = service.merge_pdfs(inputs, output)
-        
-        if result.sucesso:
-            print(f"✅ PDFs mesclados com sucesso!")
-            print(f"   Saída: {result.caminho_saida}")
-            print(f"   Páginas: {result.num_paginas_total}")
-        else:
-            print(f"❌ Erro: {result.erro}")
-            sys.exit(1)

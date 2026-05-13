@@ -16,7 +16,7 @@ from core.services.pdf_splitter import (
     SplitResult,
     BookmarkInfo
 )
-from core.services.pdf_merger import PDFMergerService, MergeResult
+from core.services.pdf_merger import PDFMergerService, MergeResult, PDFFileInfo
 from core.services.cleaner_service import FileCleanerService, EncodingDetector, TextCleaner
 from core.services.image_extractor import ImageExtractorService, ExtractionResult, ImageMetadata
 
@@ -29,6 +29,7 @@ __all__ = [
     "BookmarkInfo",
     "PDFMergerService",
     "MergeResult",
+    "PDFFileInfo",
     "FileCleanerService",
     "EncodingDetector",
     "TextCleaner",
