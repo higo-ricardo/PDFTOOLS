@@ -1,0 +1,44 @@
+{
+  "pdf_source": "test_images.pdf",
+  "extraction_date": "2026-05-13T13:50:56.992717",
+  "total_images": 2,
+  "format": "PNG",
+  "images": [
+    {
+      "width": 100,
+      "height": 100,
+      "colorspace": "Unknown",
+      "bits_per_component": 8,
+      "xref": 7,
+      "page_number": 1,
+      "image_index": 1,
+      "file_size": 287,
+      "format": "PNG",
+      "dpi": 96.012,
+      "creation_date": null,
+      "additional_info": {
+        "original_format": "png",
+        "pdf_page": 1,
+        "image_in_page": 1
+      }
+    },
+    {
+      "width": 100,
+      "height": 100,
+      "colorspace": "Unknown",
+      "bits_per_component": 8,
+      "xref": 11,
+      "page_number": 2,
+      "image_index": 1,
+      "file_size": 289,
+      "format": "PNG",
+      "dpi": 96.012,
+      "creation_date": null,
+      "additional_info": {
+        "original_format": "png",
+        "pdf_page": 2,
+        "image_in_page": 1
+      }
+    }
+  ]
+}

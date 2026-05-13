@@ -20,6 +20,7 @@ import os
 import sys
 from pathlib import Path
 from typing import List, Optional
+from datetime import datetime
 from PIL import Image
 from io import BytesIO
 
@@ -38,6 +39,8 @@ logger = get_logger(__name__)
 from core.services.extractor_service import StreamingPDFExtractor
 from core.services.pdf_splitter import PDFSplitterService, PagePreview
 from core.pdf_compressor import PDFCompressor
+from core.services.cleaner_service import FileCleanerService, CleaningResult
+from core.services.pdf_merger import PDFMergerService, PDFFileInfo, MergeResult
 from utils.helpers import format_file_size
 
 # Widgets customizados
@@ -823,6 +826,718 @@ class SplitterTab(ctk.CTkFrame):
         messagebox.showerror("Erro", message)
 
 
+class CleanerTab(ctk.CTkFrame):
+    """Tab de limpeza de arquivos TXT, DOCX, MD com 12 criterios."""
+    
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.cleaner = FileCleanerService()
+        self.selected_files: List[str] = []
+        self.cleaning_results: List[CleaningResult] = []
+        
+        self._setup_ui()
+    
+    def _setup_ui(self):
+        """Configura interface da tab de limpeza."""
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(2, weight=1)
+        
+        # Header
+        header_frame = ctk.CTkFrame(self, fg_color="transparent")
+        header_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(15, 10))
+        header_frame.grid_columnconfigure(0, weight=1)
+        
+        title_label = ctk.CTkLabel(
+            header_frame,
+            text="🧹 Limpar Arquivos (TXT, DOCX, MD)",
+            font=ctk.CTkFont(size=20, weight="bold")
+        )
+        title_label.grid(row=0, column=0, sticky="w")
+        
+        desc_label = ctk.CTkLabel(
+            header_frame,
+            text="Encoding automático + 12 limpezas: BOM, CRLF, espaços, headers, pontuação...",
+            font=ctk.CTkFont(size=12),
+            text_color="gray"
+        )
+        desc_label.grid(row=1, column=0, sticky="w", pady=(5, 0))
+        
+        # Drop zone
+        self.drop_zone = DropZoneFrame(
+            self,
+            on_drop=self._on_files_dropped,
+            text="Arraste arquivos .txt, .docx ou .md"
+        )
+        self.drop_zone.grid(row=1, column=0, sticky="ew", padx=20, pady=10)
+        
+        # Botões
+        btn_frame = ctk.CTkFrame(self, fg_color="transparent")
+        btn_frame.grid(row=2, column=0, sticky="ew", padx=20, pady=10)
+        btn_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        
+        self.select_btn = ModernButton(
+            btn_frame,
+            text="📁 Selecionar Arquivo(s)",
+            command=self.select_files,
+            width=160,
+            height=45,
+            corner_radius=12
+        )
+        self.select_btn.grid(row=0, column=0, padx=8, pady=5)
+        
+        self.clean_btn = ModernButton(
+            btn_frame,
+            text="✨ Limpar",
+            command=self.start_cleaning,
+            state="disabled",
+            width=160,
+            height=45,
+            corner_radius=12,
+            fg_color="#9C27B0"
+        )
+        self.clean_btn.grid(row=0, column=1, padx=8, pady=5)
+        
+        self.save_btn = ModernButton(
+            btn_frame,
+            text="💾 Salvar Todos",
+            command=self.save_results,
+            state="disabled",
+            width=160,
+            height=45,
+            corner_radius=12,
+            fg_color="#4CAF50"
+        )
+        self.save_btn.grid(row=0, column=2, padx=8, pady=5)
+        
+        # Lista de arquivos
+        list_frame = ShadowFrame(self, corner_radius=12)
+        list_frame.grid(row=3, column=0, sticky="nsew", padx=20, pady=10)
+        list_frame.grid_columnconfigure(0, weight=1)
+        list_frame.grid_rowconfigure(0, weight=1)
+        
+        self.file_listbox = ctk.CTkTextbox(
+            list_frame,
+            wrap="word",
+            state="disabled",
+            corner_radius=8,
+            border_width=1,
+            height=120
+        )
+        self.file_listbox.grid(row=0, column=0, sticky="ew", padx=12, pady=12)
+        
+        # Resultado
+        result_frame = ShadowFrame(self, corner_radius=12)
+        result_frame.grid(row=4, column=0, sticky="nsew", padx=20, pady=10)
+        result_frame.grid_columnconfigure(0, weight=1)
+        result_frame.grid_rowconfigure(0, weight=1)
+        
+        self.result_text = ctk.CTkTextbox(
+            result_frame,
+            wrap="word",
+            state="disabled",
+            corner_radius=8,
+            border_width=1
+        )
+        self.result_text.grid(row=0, column=0, sticky="nsew", padx=12, pady=12)
+        
+        # Status bar
+        status_frame = ctk.CTkFrame(self, fg_color="transparent")
+        status_frame.grid(row=5, column=0, sticky="ew", padx=20, pady=10)
+        status_frame.grid_columnconfigure(0, weight=1)
+        
+        self.status_label = ctk.CTkLabel(
+            status_frame,
+            text="Pronto - Selecione arquivos para limpar",
+            anchor="w",
+            font=ctk.CTkFont(size=11)
+        )
+        self.status_label.grid(row=0, column=0, sticky="w")
+        
+        self.progress_bar = ctk.CTkProgressBar(status_frame, width=250, corner_radius=6)
+        self.progress_bar.set(0)
+        self.progress_bar.grid(row=0, column=1, padx=10)
+        
+        self.percent_label = ctk.CTkLabel(
+            status_frame,
+            text="0%",
+            font=ctk.CTkFont(size=11, weight="bold")
+        )
+        self.percent_label.grid(row=0, column=2)
+    
+    def _on_files_dropped(self, files: list):
+        """Handle files dropped."""
+        if files:
+            self.selected_files = [f for f in files if Path(f).suffix.lower() in self.cleaner.SUPPORTED_EXTENSIONS]
+            if len(self.selected_files) != len(files):
+                messagebox.showwarning(
+                    "Aviso",
+                    f"Apenas arquivos .txt, .docx, .md são suportados.\n{len(files) - len(self.selected_files)} arquivo(s) ignorado(s)."
+                )
+            self._update_file_list()
+    
+    def select_files(self):
+        """Abre diálogo para seleção de arquivos."""
+        files = filedialog.askopenfilenames(
+            title="Selecione os arquivos",
+            filetypes=[
+                ("Text files", "*.txt"),
+                ("Markdown files", "*.md"),
+                ("Word documents", "*.docx"),
+                ("All supported", "*.txt *.md *.docx")
+            ]
+        )
+        
+        if files:
+            self.selected_files = list(files)
+            self._update_file_list()
+    
+    def _update_file_list(self):
+        """Atualiza lista de arquivos selecionados."""
+        if not self.selected_files:
+            return
+        
+        self.file_listbox.configure(state="normal")
+        self.file_listbox.delete("1.0", "end")
+        
+        for i, filepath in enumerate(self.selected_files, 1):
+            path = Path(filepath)
+            size = format_file_size(path.stat().st_size)
+            self.file_listbox.insert("end", f"{i}. {path.name} ({size})\n")
+        
+        self.file_listbox.configure(state="disabled")
+        self.clean_btn.configure(state="normal")
+        self.status_label.configure(text=f"{len(self.selected_files)} arquivo(s) selecionado(s)")
+    
+    def start_cleaning(self):
+        """Inicia limpeza em thread separada."""
+        if not self.selected_files:
+            messagebox.showwarning("Aviso", "Nenhum arquivo selecionado")
+            return
+        
+        self.clean_btn.configure(state="disabled")
+        self.select_btn.configure(state="disabled")
+        self.progress_bar.set(0)
+        self.result_text.configure(state="normal")
+        self.result_text.delete("1.0", "end")
+        self.result_text.configure(state="disabled")
+        self.status_label.configure(text="Processando...")
+        
+        # Processa em thread separada
+        thread = threading.Thread(target=self._process_files, daemon=True)
+        thread.start()
+    
+    def _process_files(self):
+        """Processa arquivos em segundo plano."""
+        try:
+            total = len(self.selected_files)
+            self.cleaning_results = []
+            
+            for i, file_path in enumerate(self.selected_files, 1):
+                filename = Path(file_path).stem
+                
+                # Executa limpeza
+                result = self.cleaner.clean_file(file_path)
+                self.cleaning_results.append(result)
+                
+                # Atualiza UI
+                if result.sucesso:
+                    msg = f"✅ {result.arquivo}: {len(result.limpezas_aplicadas)} limpezas aplicadas"
+                else:
+                    msg = f"❌ {result.arquivo}: {result.erro}"
+                
+                self.after(0, lambda m=msg: self._append_result(m))
+                
+                progress = i / total
+                self.after(0, lambda p=progress: self._update_progress_bar(p))
+            
+            self.after(0, lambda: self._finish_cleaning())
+            
+        except Exception as e:
+            logger.exception(f"Erro na limpeza: {e}")
+            self.after(0, lambda: self._show_error(f'Erro: {str(e)}'))
+    
+    def _append_result(self, message: str):
+        """Adiciona mensagem ao resultado."""
+        self.result_text.configure(state="normal")
+        self.result_text.insert("end", message + "\n")
+        self.result_text.configure(state="disabled")
+    
+    def _update_progress_bar(self, value: float):
+        """Atualiza barra de progresso."""
+        self.progress_bar.set(value)
+        self.percent_label.configure(text=f"{int(value * 100)}%")
+    
+    def _finish_cleaning(self):
+        """Finaliza limpeza."""
+        success_count = sum(1 for r in self.cleaning_results if r.sucesso)
+        self.status_label.configure(text=f"✅ Conclusão: {success_count}/{len(self.cleaning_results)} arquivos limpos")
+        self.clean_btn.configure(state="normal")
+        self.select_btn.configure(state="normal")
+        
+        if success_count > 0:
+            self.save_btn.configure(state="normal")
+    
+    def _show_error(self, message: str):
+        """Mostra mensagem de erro."""
+        self.status_label.configure(text=f"❌ Erro: {message}")
+        self.clean_btn.configure(state="normal")
+        self.select_btn.configure(state="normal")
+        self.progress_bar.set(0)
+        self.percent_label.configure(text="0%")
+        messagebox.showerror("Erro", message)
+    
+    def save_results(self):
+        """Salva todos os resultados."""
+        if not self.cleaning_results:
+            return
+        
+        saved_count = 0
+        for result in self.cleaning_results:
+            if result.sucesso and result.caminho_saida:
+                saved_count += 1
+        
+        self.status_label.configure(text=f"✅ {saved_count} arquivo(s) salvos")
+        logger.info(f"{saved_count} arquivos limpos salvos")
+
+
+class MergerTab(ctk.CTkFrame):
+    """Tab de mesclagem de PDFs com preview e reordenação."""
+    
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.merger_service = PDFMergerService()
+        self.pdf_files: List[PDFFileInfo] = []
+        self.output_path: Optional[str] = None
+        
+        self._setup_ui()
+    
+    def _setup_ui(self):
+        """Configura interface da tab de mesclagem."""
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(3, weight=1)
+        
+        # Header
+        header_frame = ctk.CTkFrame(self, fg_color="transparent")
+        header_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(15, 10))
+        header_frame.grid_columnconfigure(0, weight=1)
+        
+        title_label = ctk.CTkLabel(
+            header_frame,
+            text="📑 Mesclar PDFs",
+            font=ctk.CTkFont(size=20, weight="bold")
+        )
+        title_label.grid(row=0, column=0, sticky="w")
+        
+        subtitle_label = ctk.CTkLabel(
+            header_frame,
+            text="Selecione múltiplos PDFs, reordene e una em um único arquivo",
+            font=ctk.CTkFont(size=12),
+            text_color="gray"
+        )
+        subtitle_label.grid(row=1, column=0, sticky="w")
+        
+        # Drop zone
+        self.drop_zone = DropZoneFrame(
+            self,
+            on_drop=self._on_files_dropped,
+            text="Arraste PDFs aqui ou clique em Adicionar"
+        )
+        self.drop_zone.grid(row=1, column=0, sticky="ew", padx=20, pady=10)
+        
+        # Botões de ação
+        btn_frame = ctk.CTkFrame(self, fg_color="transparent")
+        btn_frame.grid(row=2, column=0, sticky="ew", padx=20, pady=10)
+        btn_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)
+        
+        self.add_btn = ModernButton(
+            btn_frame,
+            text="📁 Adicionar PDFs",
+            command=self.add_files,
+            width=160,
+            height=40,
+            corner_radius=10
+        )
+        self.add_btn.grid(row=0, column=0, padx=5, pady=5)
+        
+        self.remove_btn = ModernButton(
+            btn_frame,
+            text="🗑️ Remover",
+            command=self.remove_selected,
+            state="disabled",
+            width=140,
+            height=40,
+            corner_radius=10,
+            fg_color="#F44336"
+        )
+        self.remove_btn.grid(row=0, column=1, padx=5, pady=5)
+        
+        self.up_btn = ModernButton(
+            btn_frame,
+            text="⬆️ Subir",
+            command=self.move_up,
+            state="disabled",
+            width=120,
+            height=40,
+            corner_radius=10,
+            fg_color="#2196F3"
+        )
+        self.up_btn.grid(row=0, column=2, padx=5, pady=5)
+        
+        self.down_btn = ModernButton(
+            btn_frame,
+            text="⬇️ Descer",
+            command=self.move_down,
+            state="disabled",
+            width=120,
+            height=40,
+            corner_radius=10,
+            fg_color="#2196F3"
+        )
+        self.down_btn.grid(row=0, column=3, padx=5, pady=5)
+        
+        # Lista de arquivos com scroll
+        list_frame = ShadowFrame(self, corner_radius=12)
+        list_frame.grid(row=3, column=0, sticky="nsew", padx=20, pady=10)
+        list_frame.grid_columnconfigure(0, weight=1)
+        list_frame.grid_rowconfigure(0, weight=1)
+        
+        # Canvas com scrollbar
+        self.canvas = ctk.CTkCanvas(list_frame, highlightthickness=0, bg="#2a2a2a")
+        scrollbar = ctk.CTkScrollbar(list_frame, orientation="vertical", command=self.canvas.yview)
+        
+        self.scrollable_frame = ctk.CTkFrame(self.canvas)
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        )
+        
+        self.canvas_window = self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=scrollbar.set)
+        
+        self.canvas.grid(row=0, column=0, sticky="nsew", padx=12, pady=12)
+        scrollbar.grid(row=0, column=1, sticky="ns", pady=12)
+        
+        self.canvas.bind("<Configure>", self._on_canvas_configure)
+        self.scrollable_frame.bind("<Configure>", self._on_frame_configure)
+        
+        # Opções de mesclagem
+        options_frame = ctk.CTkFrame(self, fg_color="transparent")
+        options_frame.grid(row=4, column=0, sticky="ew", padx=20, pady=10)
+        options_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        
+        self.bookmarks_var = ctk.BooleanVar(value=True)
+        self.bookmarks_check = ctk.CTkCheckBox(
+            options_frame,
+            text="Manter Bookmarks",
+            variable=self.bookmarks_var,
+            width=150
+        )
+        self.bookmarks_check.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        
+        self.compress_var = ctk.BooleanVar(value=True)
+        self.compress_check = ctk.CTkCheckBox(
+            options_frame,
+            text="Comprimir Resultado",
+            variable=self.compress_var,
+            width=150
+        )
+        self.compress_check.grid(row=0, column=1, padx=10, pady=5, sticky="w")
+        
+        self.separators_var = ctk.BooleanVar(value=False)
+        self.separators_check = ctk.CTkCheckBox(
+            options_frame,
+            text="Adicionar Separadores",
+            variable=self.separators_var,
+            width=150
+        )
+        self.separators_check.grid(row=0, column=2, padx=10, pady=5, sticky="w")
+        
+        # Botão de mesclar
+        merge_btn_frame = ctk.CTkFrame(self, fg_color="transparent")
+        merge_btn_frame.grid(row=5, column=0, sticky="e", padx=20, pady=15)
+        
+        self.merge_btn = ModernButton(
+            merge_btn_frame,
+            text="🔗 Mesclar PDFs",
+            command=self.start_merge,
+            state="disabled",
+            width=180,
+            height=50,
+            corner_radius=12,
+            fg_color="#4CAF50"
+        )
+        self.merge_btn.pack(side="right")
+        
+        # Status bar
+        status_frame = ctk.CTkFrame(self, fg_color="transparent")
+        status_frame.grid(row=6, column=0, sticky="ew", padx=20, pady=10)
+        status_frame.grid_columnconfigure(0, weight=1)
+        
+        self.status_label = ctk.CTkLabel(
+            status_frame,
+            text="Pronto - Adicione pelo menos 2 PDFs",
+            anchor="w",
+            font=ctk.CTkFont(size=11)
+        )
+        self.status_label.grid(row=0, column=0, sticky="w")
+        
+        self.progress_bar = ctk.CTkProgressBar(status_frame, width=250, corner_radius=6)
+        self.progress_bar.set(0)
+        self.progress_bar.grid(row=0, column=1, padx=10)
+        
+        self.percent_label = ctk.CTkLabel(
+            status_frame,
+            text="0%",
+            font=ctk.CTkFont(size=11, weight="bold")
+        )
+        self.percent_label.grid(row=0, column=2)
+        
+        # Bind para seleção
+        self.selected_index: Optional[int] = None
+    
+    def _on_canvas_configure(self, event):
+        """Ajusta largura do frame interno."""
+        self.canvas.itemconfig(self.canvas_window, width=event.width)
+    
+    def _on_frame_configure(self, event):
+        """Atualiza região de scroll."""
+        pass
+    
+    def _on_files_dropped(self, files: list):
+        """Handle files dropped."""
+        if files:
+            self.add_pdf_files(files)
+    
+    def add_files(self):
+        """Abre diálogo para seleção de arquivos."""
+        files = filedialog.askopenfilenames(
+            title="Selecionar PDFs para mesclar",
+            filetypes=[("PDF files", "*.pdf"), ("All files", "*.*")]
+        )
+        
+        if files:
+            self.add_pdf_files(list(files))
+    
+    def add_pdf_files(self, files: List[str]):
+        """Adiciona arquivos PDF à lista."""
+        for filepath in files:
+            info = self.merger_service.get_pdf_info(filepath)
+            if info and info not in self.pdf_files:
+                self.pdf_files.append(info)
+        
+        self.refresh_file_list()
+        self.update_buttons()
+    
+    def refresh_file_list(self):
+        """Atualiza visualização da lista de arquivos."""
+        # Limpa frame
+        for widget in self.scrollable_frame.winfo_children():
+            widget.destroy()
+        
+        if not self.pdf_files:
+            label = ctk.CTkLabel(
+                self.scrollable_frame,
+                text="Nenhum arquivo adicionado\nArraste PDFs ou clique em 'Adicionar PDFs'",
+                font=ctk.CTkFont(size=13),
+                text_color="gray"
+            )
+            label.pack(pady=40)
+            return
+        
+        # Cria cards para cada arquivo
+        for idx, pdf_info in enumerate(self.pdf_files):
+            card = ctk.CTkFrame(self.scrollable_frame, corner_radius=8, fg_color="#2a2a2a")
+            card.pack(fill="x", padx=10, pady=5, ipadx=10, ipady=8)
+            
+            # Seleção
+            radio = ctk.CTkRadioButton(
+                card,
+                text="",
+                command=lambda i=idx: self.select_file(i),
+                width=20
+            )
+            radio.pack(side="left", padx=(5, 10))
+            
+            # Informações
+            info_frame = ctk.CTkFrame(card, fg_color="transparent")
+            info_frame.pack(side="left", fill="x", expand=True)
+            
+            name_label = ctk.CTkLabel(
+                info_frame,
+                text=f"📄 {pdf_info.nome}",
+                font=ctk.CTkFont(size=13, weight="bold"),
+                anchor="w"
+            )
+            name_label.pack(anchor="w")
+            
+            details_label = ctk.CTkLabel(
+                info_frame,
+                text=f"{pdf_info.num_paginas} páginas • {pdf_info.tamanho_formatado}",
+                font=ctk.CTkFont(size=11),
+                text_color="gray",
+                anchor="w"
+            )
+            details_label.pack(anchor="w")
+            
+            # Ordem
+            order_label = ctk.CTkLabel(
+                card,
+                text=f"#{idx + 1}",
+                font=ctk.CTkFont(size=16, weight="bold"),
+                text_color="#2196F3",
+                width=40
+            )
+            order_label.pack(side="right", padx=10)
+        
+        self.status_label.configure(text=f"{len(self.pdf_files)} arquivo(s) na fila")
+    
+    def select_file(self, index: int):
+        """Seleciona um arquivo da lista."""
+        self.selected_index = index
+        self.update_buttons()
+    
+    def update_buttons(self):
+        """Atualiza estado dos botões."""
+        has_files = len(self.pdf_files) >= 2
+        has_selection = self.selected_index is not None
+        
+        self.merge_btn.configure(state="normal" if has_files else "disabled")
+        self.remove_btn.configure(state="normal" if has_selection else "disabled")
+        self.up_btn.configure(state="normal" if has_selection and self.selected_index > 0 else "disabled")
+        self.down_btn.configure(state="normal" if has_selection and self.selected_index < len(self.pdf_files) - 1 else "disabled")
+    
+    def remove_selected(self):
+        """Remove arquivo selecionado."""
+        if self.selected_index is None or not self.pdf_files:
+            return
+        
+        self.pdf_files.pop(self.selected_index)
+        self.selected_index = None
+        self.refresh_file_list()
+        self.update_buttons()
+    
+    def move_up(self):
+        """Move arquivo selecionado para cima."""
+        if self.selected_index is None or self.selected_index <= 0:
+            return
+        
+        self.pdf_files = self.merger_service.reorder_files(
+            self.pdf_files,
+            self.selected_index,
+            self.selected_index - 1
+        )
+        self.selected_index -= 1
+        self.refresh_file_list()
+        self.update_buttons()
+    
+    def move_down(self):
+        """Move arquivo selecionado para baixo."""
+        if self.selected_index is None or self.selected_index >= len(self.pdf_files) - 1:
+            return
+        
+        self.pdf_files = self.merger_service.reorder_files(
+            self.pdf_files,
+            self.selected_index,
+            self.selected_index + 1
+        )
+        self.selected_index += 1
+        self.refresh_file_list()
+        self.update_buttons()
+    
+    def start_merge(self):
+        """Inicia mesclagem em thread separada."""
+        if len(self.pdf_files) < 2:
+            messagebox.showwarning("Aviso", "Adicione pelo menos 2 PDFs para mesclar")
+            return
+        
+        self.merge_btn.configure(state="disabled")
+        self.add_btn.configure(state="disabled")
+        self.progress_bar.set(0)
+        self.status_label.configure(text="Mesclando PDFs...")
+        
+        # Processa em thread separada
+        thread = threading.Thread(target=self._merge_pdfs, daemon=True)
+        thread.start()
+    
+    def _merge_pdfs(self):
+        """Executa mesclagem em segundo plano."""
+        try:
+            # Prepara lista de caminhos
+            pdf_paths = [f.caminho for f in self.pdf_files]
+            
+            # Define caminho de saída automático (mesmo diretório do primeiro arquivo)
+            first_file = Path(pdf_paths[0])
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            default_output = str(first_file.parent / f"{first_file.stem}_mesclado_{timestamp}.pdf")
+            
+            # Atualiza progresso inicial
+            self.after(0, lambda: self._update_progress(0.3))
+            
+            # Executa mesclagem (sem diálogo - salvamento automático)
+            result = self.merger_service.merge_pdfs(
+                pdf_files=pdf_paths,
+                output_path=default_output,
+                keep_bookmarks=self.bookmarks_var.get(),
+                add_separators=self.separators_var.get(),
+                compress=self.compress_var.get()
+            )
+            
+            if result.sucesso:
+                self.output_path = result.caminho_saida
+                self.after(0, lambda: self._finish_merge(result))
+            else:
+                self.after(0, lambda: self._show_error(result.erro))
+                
+        except Exception as e:
+            logger.exception(f"Erro na mesclagem: {e}")
+            self.after(0, lambda: self._show_error(str(e)))
+    
+    def _update_progress(self, value: float):
+        """Atualiza barra de progresso."""
+        self.progress_bar.set(value)
+        self.percent_label.configure(text=f"{int(value * 100)}%")
+    
+    def _finish_merge(self, result: MergeResult):
+        """Finaliza mesclagem com sucesso."""
+        self._update_progress(1.0)
+        
+        self.status_label.configure(
+            text=f"✅ Sucesso! {result.num_paginas_total} páginas mescladas"
+        )
+        
+        self.merge_btn.configure(state="normal")
+        self.add_btn.configure(state="normal")
+        
+        # Mostra resultado
+        msg = f"PDF mesclado com sucesso!\n\n"
+        msg += f"Arquivo: {Path(self.output_path).name}\n"
+        msg += f"Páginas totais: {result.num_paginas_total}\n"
+        msg += f"Tamanho: {format_file_size(result.tamanho_final)}\n\n"
+        msg += "Arquivos processados:\n"
+        for m in result.mensagens:
+            msg += f"  {m}\n"
+        
+        messagebox.showinfo("Mesclagem Concluída", msg)
+        
+        # Abre pasta
+        os.startfile(str(Path(self.output_path).parent)) if os.name == 'nt' else None
+    
+    def _cancel_merge(self):
+        """Cancela operação de mesclagem."""
+        self.merge_btn.configure(state="normal")
+        self.add_btn.configure(state="normal")
+        self.status_label.configure(text="Operação cancelada")
+        self._update_progress(0)
+    
+    def _show_error(self, message: str):
+        """Mostra mensagem de erro."""
+        self.status_label.configure(text=f"❌ Erro: {message}")
+        self.merge_btn.configure(state="normal")
+        self.add_btn.configure(state="normal")
+        self._update_progress(0)
+        messagebox.showerror("Erro", message)
+
+
 class PDFToolsApp(ctk.CTk):
     """Aplicação principal PDF Tools v2.0."""
     
@@ -884,6 +1599,8 @@ class PDFToolsApp(ctk.CTk):
         self.extractor_tab = self.tabview.add("📝 Extrair Texto")
         self.compressor_tab = self.tabview.add("⚡ Comprimir")
         self.splitter_tab = self.tabview.add("✂️ Dividir PDF")
+        self.cleaner_tab = self.tabview.add("🧹 Limpar Arquivos")
+        self.merger_tab = self.tabview.add("📑 Mesclar PDFs")
         
         # Configurar conteúdo das abas
         self.extractor_frame = ExtractorTab(self.extractor_tab)
@@ -894,6 +1611,12 @@ class PDFToolsApp(ctk.CTk):
         
         self.splitter_frame = SplitterTab(self.splitter_tab)
         self.splitter_frame.pack(fill="both", expand=True, padx=12, pady=12)
+        
+        self.cleaner_frame = CleanerTab(self.cleaner_tab)
+        self.cleaner_frame.pack(fill="both", expand=True, padx=12, pady=12)
+        
+        self.merger_frame = MergerTab(self.merger_tab)
+        self.merger_frame.pack(fill="both", expand=True, padx=12, pady=12)
     
     def on_closing(self):
         """Handle fechamento da aplicação."""
