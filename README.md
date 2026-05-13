@@ -1,6 +1,20 @@
 # PDF Tools - Suite de Ferramentas para PDF
 
-Uma aplicação modular desenvolvida em Python com interface gráfica em Kivy para extração de texto e compressão de arquivos PDF.
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](CHANGELOG.md)
+[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+Uma aplicação moderna e modular para manipulação de PDFs com interface gráfica CustomTkinter, oferecendo extração de texto, compressão e divisão de arquivos PDF com preview visual.
+
+## ✨ Funcionalidades
+
+- 📄 **Extrator de Texto**: Converta PDFs para TXT mantendo formatação
+- 🗜️ **Compressor de PDF**: Reduza tamanho com 3 níveis de compressão
+- ✂️ **Dividir PDF**: Extraia páginas individuais ou intervalos com preview visual
+- 🎨 **Interface Moderna**: Tema escuro premium com widgets customizados
+- 🚀 **Streaming**: Processa arquivos grandes (>50MB) sem vazamento de memória
+- 📊 **Preview Universal**: Visualize conteúdo antes de processar
+- 🔒 **Validação Robusta**: Verifica integridade do PDF antes de processar
 
 ## REQUISITOS
 
@@ -12,126 +26,175 @@ Uma aplicação modular desenvolvida em Python com interface gráfica em Kivy pa
 Instale as dependências necessárias executando:
 
 ```bash
-pip install kivy pdfplumber PyMuPDF
+pip install customtkinter pdfplumber PyMuPDF Pillow
 ```
 
-Ou, se preferir usar um arquivo de requisitos (crie um arquivo `requirements.txt`):
+Ou, se preferir usar um arquivo de requisitos:
 ```text
-kivy>=2.2.0
+customtkinter>=5.2.0
 pdfplumber>=0.10.0
 PyMuPDF>=1.23.0
+Pillow>=10.0.0
 ```
 
 **Descrição das bibliotecas:**
-- **kivy**: Framework para criação da interface gráfica multiplataforma
-- **pdfplumber**: Biblioteca para extração precisa de texto de PDFs
-- **PyMuPDF (fitz)**: Biblioteca para manipulação e compressão de PDFs
+- **customtkinter**: Framework GUI moderno com temas automático claro/escuro
+- **pdfplumber**: Extração precisa de texto de PDFs
+- **PyMuPDF (fitz)**: Manipulação, compressão e divisão de PDFs
+- **Pillow**: Processamento de imagens para thumbnails de preview
 
 ## COMO EXECUTAR
 
 1. **Clone ou navegue até o diretório do projeto:**
    ```bash
-   cd PDF
+   cd /workspace
    ```
 
-2. **Certifique-se de que todas as dependências estão instaladas:**
+2. **Instale as dependências:**
    ```bash
-   pip install -r requirements.txt  # Se criou o arquivo
-   # OU
-   pip install kivy pdfplumber PyMuPDF
+   pip install customtkinter pdfplumber PyMuPDF Pillow
    ```
 
 3. **Execute a aplicação:**
    ```bash
-   python main.py
+   python gui_tkinter/app.py
    ```
 
-4. **A interface gráfica será aberta**, permitindo navegar entre as abas de "Extrator de Texto" e "Compressor de PDF".
+4. **A interface moderna será aberta** com 3 abas:
+   - 📄 **Extrair**: Extração de texto de PDFs
+   - 🗜️ **Comprimir**: Redução de tamanho de PDFs
+   - ✂️ **Dividir**: Separação de páginas com preview
 
 ## COMO USAR
 
-### 📄 Extrator de Texto (PDF para TXT)
+### 📄 Extrator de Texto (PDF → TXT)
 
-1. Na tela inicial, clique na aba **"Extrator de Texto"**.
-2. Clique no botão **"Selecionar Arquivo(s) PDF"** para escolher um ou múltiplos arquivos PDF.
-3. (Opcional) Selecione uma pasta de destino. Se não selecionada, os arquivos `.txt` serão salvos na mesma pasta dos originais.
-4. Clique em **"Extrair Texto"**.
-5. Acompanhe o progresso na barra de status e visualize os logs de sucesso ou erro.
-6. Os arquivos de texto serão gerados com o mesmo nome do PDF original.
+1. Clique na aba **"📄 Extrair"**
+2. Arraste PDFs para a drop zone OU clique em **"Selecionar Arquivos"**
+3. Visualize o preview do conteúdo antes de processar
+4. Escolha a pasta de destino (opcional)
+5. Clique em **"Extrair Texto"**
+6. Acompanhe o progresso página por página
+7. Resultado salvo em UTF-8 com numeração de páginas
 
 ### 🗜️ Compressor de PDF
 
-1. Na tela inicial, clique na aba **"Compressor de PDF"**.
-2. Clique no botão **"Selecionar Arquivo(s) PDF"** para escolher os arquivos que deseja comprimir.
-3. Escolha o **Nível de Compressão** no menu suspenso:
-   - **Baixa:** Mantém alta qualidade, redução moderada de tamanho.
-   - **Média:** Equilíbrio entre qualidade e tamanho (Recomendado).
-   - **Alta:** Máxima redução de tamanho, pode haver perda visível de qualidade.
-4. (Opcional) Selecione uma pasta de destino para os arquivos comprimidos.
-5. Clique em **"Comprimir PDFs"**.
-6. Acompanhe o progresso e verifique a economia de espaço nos logs.
+1. Clique na aba **"🗜️ Comprimir"**
+2. Selecione os PDFs para comprimir
+3. Escolha o nível de compressão:
+   - **Baixa:** ~30% redução, qualidade máxima
+   - **Média:** ~50% redução, equilíbrio ideal ⭐
+   - **Alta:** ~70% redução, qualidade reduzida
+4. Visualize preview antes de comprimir
+5. Clique em **"Comprimir PDFs"**
+6. Veja economia de espaço em tempo real
+
+### ✂️ Dividir PDF (NOVO!)
+
+1. Clique na aba **"✂️ Dividir"**
+2. Selecione um PDF para dividir
+3. **Preview automático**: Veja thumbnails de todas páginas
+4. Escolha o modo de divisão:
+   - **Páginas individuais**: Cada página vira um PDF separado
+   - **Intervalo**: Extraia páginas X-Y em um único PDF
+5. Selecione páginas com checkboxes OU defina intervalo
+6. Clique em **"Dividir PDF"**
+7. Arquivos salvos com numeração automática
 
 ## FUNCIONALIDADES
 
 ### Gerais
-- **Interface Unificada:** Navegação simples entre ferramentas em uma única janela.
-- **Processamento em Lote:** Capacidade de selecionar e processar múltiplos arquivos PDF de uma vez.
-- **Logs Detalhados:** Painel de logs em tempo real mostrando o status de cada operação (sucesso, falha, detalhes de tamanho).
-- **Validação de Arquivos:** Verificação automática se os arquivos selecionados são PDFs válidos antes do processamento.
-- **Design Responsivo:** Interface adaptável a diferentes tamanhos de tela.
+- **Interface Unificada**: 3 tabs organizadas em layout responsivo
+- **Tema Escuro Moderno**: Paleta profissional com widgets customizados
+- **Processamento em Lote**: Múltiplos arquivos simultaneamente
+- **Logs Detalhados**: Painel com status de cada operação
+- **Validação Automática**: Verifica PDFs antes de processar
+- **Design Responsivo**: Adaptável a diferentes telas
+- **Drop Zones**: Drag-and-drop intuitivo
+- **Preview Universal**: Visualize antes de processar
 
-### Extrator de Texto
-- **Extração de Alta Qualidade:** Utiliza `pdfplumber` para preservar a estrutura do texto sempre que possível.
-- **Codificação UTF-8:** Garante compatibilidade com caracteres especiais e acentos.
-- **Suporte a Múltiplas Páginas:** Concatena o texto de todas as páginas em um único arquivo.
-- 🔄 **Extração de Imagens:** *(Planejado)* Opção específica para extrair apenas as imagens contidas no PDF e salvá-las em uma pasta organizada.
+### 📄 Extrator de Texto
+- **Alta Qualidade**: `pdfplumber` preserva estrutura do texto
+- **UTF-8**: Suporte completo a caracteres especiais
+- **Múltiplas Páginas**: Concatenação automática
+- **Numeração**: Indica página de origem no resultado
+- **Streaming**: Processa arquivos >50MB sem travar
 
-### Compressor de PDF
-- **Níveis de Compressão Ajustáveis:** Controle sobre o trade-off entre qualidade e tamanho do arquivo.
-- **Economia de Espaço:** Redução significativa do tamanho do arquivo para facilitar compartilhamento e armazenamento.
-- **Preservação de Conteúdo:** Mantém o conteúdo textual e visual essencial, removendo metadados desnecessários e otimizando imagens.
+### 🗜️ Compressor de PDF
+- **3 Níveis**: Baixa, Média (⭐), Alta compressão
+- **Economia Visível**: Mostra % de redução
+- **Qualidade Preservada**: Otimização inteligente
+- **Metadados**: Remove dados desnecessários
 
-### 🔜 Ferramentas Adicionais (Em Planejamento)
-- **Mesclagem (Merge):** Juntar vários arquivos PDF em um único documento, aproveitando a biblioteca `PyMuPDF` ou `pypdf`.
-- **Divisão (Split):** Separar um PDF em múltiplos arquivos baseados em intervalos de páginas específicos.
-- **OCR Integrado:** Reconhecimento de texto em documentos digitalizados/escaneados usando Tesseract.
+### ✂️ Dividir PDF (NOVO!)
+- **Preview Visual**: Thumbnails de todas páginas
+- **Seleção Flexível**: Checkboxes individuais
+- **Modo Intervalo**: Extraia páginas X-Y
+- **Páginas Individuais**: Cada página = PDF separado
+- **Nomeação Auto**: Arquivos numerados sequencialmente
+
+### 🔜 Em Planejamento (v2.2+)
+- **OCR Integrado**: Tesseract para PDFs escaneados
+- **Merge**: Juntar múltiplos PDFs
+- **Marca D'água**: Adicionar logos/textos
+- **Criptografia**: Proteger com senha
+- **PDF ↔ Word**: Conversão bidirecional
 
 ## ESTRUTURA DE ARQUIVOS
 
-O projeto segue uma arquitetura modular para facilitar a manutenção e escalabilidade:
+Arquitetura em camadas para máxima manutenibilidade e testabilidade:
 
 ```
-PDF/
-├── main.py                 # Ponto de entrada da aplicação (instancia a App Kivy)
-├── __init__.py             # Inicialização do pacote principal
-├── README.md               # Este arquivo de documentação
+/workspace/
+├── main.py                     # Legacy (Kivy) - manter para referência
+├── README.md                   # Esta documentação
+├── requirements.txt            # Dependências do projeto
 │
-├── core/                   # Módulo de Lógica de Negócios (Modelos)
-│   ├── __init__.py
-│   ├── pdf_extractor.py    # Classe PDFTextExtractor: Lógica de extração de texto
-│   └── pdf_compressor.py   # Classes PDFCompressor e CompressionLevel: Lógica de compressão
+├── config.py                   # Configuração centralizada (temas, cores, paths)
+├── logger.py                   # Sistema de logging com rotação
 │
-├── gui/                    # Módulo de Interface Gráfica
-│   ├── __init__.py
-│   ├── screens.py          # Definição das telas (ExtractorScreen, CompressorScreen)
-│   └── interface.kv        # Arquivo de linguagem KV para layout e estilização
+├── gui_tkinter/                # Interface Moderna (CustomTkinter)
+│   ├── app.py                  # Aplicação principal com tabs
+│   ├── widgets.py              # Componentes customizados
+│   └── dialogs.py              # Diálogos reutilizáveis
 │
-└── utils/                  # Módulo de Utilitários
-    ├── __init__.py
-    └── helpers.py          # Funções auxiliares (formatação de tamanho, validações, etc.)
+├── core/                       # Camada de Domínio
+│   ├── services/               # Serviços de Negócio
+│   │   ├── extractor_service.py    # Extração de texto
+│   │   ├── compressor_service.py   # Compressão de PDFs
+│   │   └── splitter_service.py     # Divisão de PDFs (NOVO)
+│   ├── validators/             # Validações
+│   │   └── pdf_validator.py        # Validação robusta de PDFs
+│   └── models/                 # Modelos de Dados
+│       └── __init__.py
+│
+├── docs/                       # Documentação Completa
+│   ├── CHANGELOG.md            # Histórico de versões
+│   ├── BACKLOG.md              # Backlog do produto
+│   ├── PLANO_REFACTORY.md      # Plano de arquitetura
+│   ├── RESUMO_REFACTORY.md     # Resumo executivo
+│   └── AUDITORIA_COMPLETA.md   # Auditoria de código
+│
+└── logs/                       # Logs da aplicação (auto-criado)
+    └── pdf_tools.log
 ```
 
-### Descrição dos Módulos
+### Camadas da Arquitetura
 
-- **`main.py`**: Responsável por iniciar a aplicação Kivy e carregar o arquivo `.kv`.
-- **`core/`**: Contém a lógica pura de negócios, independente de interface gráfica. Pode ser reutilizada em scripts CLI ou outros projetos.
-  - `pdf_extractor.py`: Gerencia a abertura do PDF, extração de texto página por página e salvamento.
-  - `pdf_compressor.py`: Gerencia a abertura, redefinição de streams de imagens e salvamento otimizado.
-- **`gui/`**: Contém toda a lógica de apresentação e interação com o usuário.
-  - `screens.py`: Define o comportamento das telas (callbacks, seleção de arquivos, atualização de UI).
-  - `interface.kv`: Define a estrutura visual (layouts, botões, labels, cores).
-- **`utils/`**: Funções de apoio usadas por vários módulos.
-  - `helpers.py`: Contém funções como `format_file_size`, `is_valid_pdf`, e configuração de logging.
+| Camada | Responsabilidade | Módulos |
+|--------|-----------------|---------|
+| **Apresentação** | UI/UX, eventos, feedback visual | `gui_tkinter/` |
+| **Serviços** | Lógica de negócio, orquestração | `core/services/` |
+| **Domínio** | Entidades, modelos, regras | `core/models/` |
+| **Infraestrutura** | Validações, logging, config | `core/validators/`, `config.py`, `logger.py` |
+
+### Princípios de Design
+
+- ✅ **SOLID**: Separação clara de responsabilidades
+- ✅ **Injeção de Dependência**: Serviços injetados na GUI
+- ✅ **Baixo Acoplamento**: Core independente de GUI
+- ✅ **Alta Coesão**: Módulos com propósito único
+- ✅ **Streaming**: Processamento eficiente de grandes arquivos
 
 ---
 
