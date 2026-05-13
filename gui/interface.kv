@@ -1,0 +1,175 @@
+"""
+Arquivo KV para interface Kivy do PDF Tools.
+Unifica extração de texto e compressão em uma única interface.
+"""
+
+#:kivy 2.0.0
+
+<MainScreen>:
+    orientation: 'vertical'
+    
+    # Header com título e navegação
+    BoxLayout:
+        size_hint_y: None
+        height: 60
+        padding: 10
+        
+        Label:
+            text: '📄 PDF Tools - Extrator & Compressor'
+            font_size: 24
+            bold: True
+            halign: 'left'
+        
+        Widget:
+        
+        BoxLayout:
+            size_hint_x: None
+            width: 200
+            spacing: 10
+            
+            Button:
+                text: 'Extrair Texto'
+                on_release: root.show_extractor()
+            
+            Button:
+                text: 'Comprimir PDF'
+                on_release: root.show_compressor()
+    
+    # Container para telas
+    ScreenManager:
+        id: screen_manager
+        
+        ExtractorScreen:
+            id: extractor
+            name: 'extractor'
+        
+        CompressorScreen:
+            id: compressor
+            name: 'compressor'
+
+
+<ExtractorScreen>:
+    orientation: 'vertical'
+    padding: 20
+    spacing: 15
+    
+    # Controles superiores
+    BoxLayout:
+        size_hint_y: None
+        height: 50
+        spacing: 10
+        
+        Button:
+            id: select_btn
+            text: '📁 Selecionar PDF(s)'
+            on_release: root.select_files()
+        
+        Button:
+            id: process_btn
+            text: '▶️ Processar'
+            disabled: True
+            on_release: root.start_extraction()
+        
+        Button:
+            text: '💾 Salvar'
+            disabled: not root.has_text
+            on_release: root.save_results()
+    
+    # Área de texto com resultado
+    ScrollView:
+        TextInput:
+            id: result_text
+            readonly: True
+            multiline: True
+            background_color: 1, 1, 1, 1
+            foreground_color: 0, 0, 0, 1
+    
+    # Barra de status e progresso
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_y: None
+        height: 60
+        spacing: 5
+        
+        Label:
+            id: status_label
+            text: 'Pronto - Selecione um arquivo PDF'
+            size_hint_y: None
+            height: 30
+            halign: 'left'
+        
+        ProgressBar:
+            id: progress_bar
+            max: 100
+            value: 0
+            size_hint_y: None
+            height: 30
+
+
+<CompressorScreen>:
+    orientation: 'vertical'
+    padding: 20
+    spacing: 15
+    
+    # Informações do arquivo
+    BoxLayout:
+        size_hint_y: None
+        height: 50
+        spacing: 10
+        
+        Button:
+            text: '📁 Selecionar PDF'
+            on_release: root.select_file()
+        
+        Spinner:
+            id: compression_spinner
+            text: 'MÉDIA'
+            values: ['BAIXA', 'MÉDIA', 'ALTA']
+            size_hint_x: None
+            width: 150
+        
+        Button:
+            id: compress_btn
+            text: '⚡ Comprimir'
+            disabled: not root.file_selected
+            on_release: root.compress_pdf()
+    
+    # Informações do arquivo selecionado
+    BoxLayout:
+        size_hint_y: None
+        height: 80
+        padding: 10
+        
+        Label:
+            id: file_info_label
+            text: 'Nenhum arquivo selecionado'
+            markup: True
+            halign: 'left'
+            valign: 'middle'
+    
+    # Área de resultado
+    ScrollView:
+        Label:
+            id: result_label
+            text: ''
+            markup: True
+            halign: 'center'
+            valign: 'middle'
+            size_hint_y: None
+            height: self.texture_size[1]
+    
+    # Barra de status
+    BoxLayout:
+        size_hint_y: None
+        height: 50
+        
+        Label:
+            id: status_label
+            text: 'Pronto'
+            markup: True
+            halign: 'left'
+        
+        ProgressBar:
+            id: progress_bar
+            max: 100
+            value: 0

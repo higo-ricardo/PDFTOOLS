@@ -1,0 +1,273 @@
+# MELHORIAS EVOLUTIVAS - ROADMAP DO PROJETO PDF TOOLS
+
+Este documento lista as melhorias evolutivas sugeridas para o projeto, organizadas por categoria e prioridade.
+
+================================================================================
+1. PERFORMANCE E CONCORRÊNCIA
+================================================================================
+
+[ ] Processamento Assíncrono com asyncio
+    - Implementar threads ou asyncio para evitar travamentos da interface durante processamentos longos
+    - Adicionar barra de progresso real-time para operações demoradas
+    - Permitir cancelamento de operações em andamento
+
+[ ] Streaming de Arquivos Grandes
+    - Implementar leitura/streaming para lidar com PDFs de centenas de MB ou GB
+    - Processar páginas sob demanda em vez de carregar todo o arquivo na memória
+    - Adicionar limite configurável de uso de memória
+
+[ ] Cache de Operações
+    - Implementar sistema de cache para operações repetidas
+    - Permitir retomar processamentos interrompidos
+
+================================================================================
+2. INTELIGÊNCIA ARTIFICIAL E PROCESSAMENTO AVANÇADO
+================================================================================
+
+[ ] OCR Integrado (Tesseract)
+    - Adicionar suporte a reconhecimento óptico de caracteres
+    - Processar PDFs digitalizados/escaneados que não possuem camada de texto
+    - Suporte a múltiplos idiomas
+    - Configuração de qualidade vs velocidade do OCR
+
+[ ] Resumo Automático de Conteúdo
+    - Integrar modelos de NLP para gerar resumos do texto extraído
+    - Opção de resumir por porcentagem ou número de palavras
+    - Destacar palavras-chave e conceitos principais
+
+[ ] Detecção Automática de Idioma
+    - Identificar automaticamente o idioma do texto extraído
+    - Ajustar configurações de OCR e processamento baseadas no idioma
+    - Suporte a documentos multilíngues
+
+[ ] Classificação de Documentos
+    - Categorizar automaticamente o tipo de documento (fatura, contrato, relatório, etc.)
+    - Extrair metadados específicos baseados no tipo de documento
+
+================================================================================
+3. ROBUSTEZ E SEGURANÇA
+================================================================================
+
+[ ] Suporte a PDFs Protegidos por Senha
+    - Dialogo para inserção de senha ao abrir arquivos protegidos
+    - Opção de remover senha de PDFs (quando autorizado)
+    - Gerenciamento seguro de senhas na memória
+
+[ ] Sanitização de Documentos
+    - Remover metadados sensíveis (autor, data de criação, histórico de edições)
+    - Eliminar dados privados embutidos
+    - Opção de "limpeza completa" antes de compartilhar documentos
+
+[ ] Recuperação de Arquivos Corrompidos
+    - Tentar recuperar conteúdo de PDFs parcialmente corrompidos
+    - Extrair páginas válidas de arquivos danificados
+    - Relatar erros específicos de forma amigável ao usuário
+
+[ ] Validação de Integridade
+    - Verificar integridade do arquivo após compressão
+    - Comparar checksums antes e depois do processamento
+    - Alertar sobre possíveis perdas de qualidade
+
+================================================================================
+4. EXPERIÊNCIA DO USUÁRIO (UX)
+================================================================================
+
+[ ] Temas Claro/Escuro
+    - Implementar toggle para alternar entre modos claro e escuro
+    - Salvar preferência do usuário
+    - Design responsivo para diferentes resoluções de tela
+
+[ ] Drag & Drop Avançado
+    - Arrastar e soltar pastas inteiras para processamento em lote
+    - Arrastar arquivos diretamente para abas específicas (extrator/compressor)
+    - Feedback visual durante o arraste
+
+[ ] Histórico de Operações
+    - Manter registro das últimas 50 operações realizadas
+    - Permitir reabrir arquivos recentes rapidamente
+    - Exportar/importar histórico
+
+[ ] Notificações Desktop
+    - Notificar ao término de processamentos longos
+    - Alertas de erro com detalhes
+    - Opção de minimizar para tray durante processamentos
+
+[ ] Wizard de Primeiro Uso
+    - Tutorial interativo para novos usuários
+    - Dicas contextuais nas interfaces
+    - Configuração inicial guiada
+
+[ ] Atalhos de Teclado
+    - Implementar atalhos para ações frequentes (Ctrl+O, Ctrl+S, etc.)
+    - Personalização de atalhos pelo usuário
+
+================================================================================
+5. DISTRIBUIÇÃO E DEVOPS
+================================================================================
+
+[ ] Executável Standalone (PyInstaller)
+    - Gerar executáveis para Windows (.exe), macOS (.app) e Linux
+    - Incluir todas as dependências no pacote
+    - Otimizar tamanho do executável final
+
+[ ] Interface de Linha de Comando (CLI)
+    - Criar comandos para automação e scripts
+    - Suporte a pipes e redirecionamento
+    - Exemplos: 
+      * pdf-tools extract input.pdf -o output.txt
+      * pdf-tools compress input.pdf -l high -o output.pdf
+      * pdf-tools merge *.pdf -o combined.pdf
+
+[ ] Testes Automatizados
+    - Implementar testes unitários para todos os módulos core
+    - Testes de integração para fluxos completos
+    - Testes de UI com pytest-kivy ou similar
+    - Cobertura mínima de 80% do código
+
+[ ] CI/CD Pipeline
+    - Configurar GitHub Actions ou GitLab CI
+    - Executar testes automaticamente em cada commit
+    - Build automático de executáveis em releases
+    - Publicação automática no PyPI
+
+[ ] Containerização (Docker)
+    - Criar Dockerfile para ambiente consistente
+    - Imagem pré-configurada com todas as dependências
+    - Suporte a execução em servidores headless
+
+[ ] Empacotamento para Lojas de Aplicativos
+    - Preparar para Microsoft Store, Mac App Store, Snap, Flatpak
+    - Atender requisitos de sandboxing e segurança
+
+================================================================================
+6. FUNCIONALIDADES DE ARQUIVO EXPANDIDAS
+================================================================================
+
+[ ] Formatos de Saída Adicionais
+    - Markdown (.md) com formatação preservada
+    - JSON estruturado para processamento posterior
+    - CSV para dados tabulares extraídos
+    - DOCX (.docx) para edição no Word
+    - HTML com estilos básicos
+    - EPUB para livros digitais
+
+[ ] Mesclagem (Merge) de PDFs [EM PLANEJAMENTO]
+    - Juntar vários arquivos PDF em um único documento
+    - Ordenação personalizada dos arquivos
+    - Adicionar marcadores/bookmarks durante a mesclagem
+    - Aproveitar PyMuPDF ou pypdf já utilizados
+
+[ ] Divisão (Split) de PDFs [EM PLANEJAMENTO]
+    - Separar um PDF em múltiplos arquivos
+    - Dividir por intervalos de páginas específicos
+    - Dividir por bookmarks existentes
+    - Extrair páginas específicas (ex: apenas páginas pares)
+
+[ ] Extração de Imagens [EM PLANEJAMENTO]
+    - Opção específica para extrair apenas imagens do PDF
+    - Salvar em pasta organizada com nomes sequenciais
+    - Formatos suportados: PNG, JPG, TIFF
+    - Manter resolução original ou redimensionar
+    - Extrair metadados das imagens quando disponíveis
+
+[ ] Compressão de Imagens Embutidas
+    - Reduzir qualidade de imagens dentro do PDF para economizar espaço
+    - Converter imagens para formatos mais eficientes
+    - Opção de remover imagens completamente
+
+[ ] Adição de Marcas d'Água
+    - Inserir marcas d'água personalizadas
+    - Texto ou imagem como marca d'água
+    - Configurar posição, transparência e rotação
+
+[ ] Numeração de Páginas
+    - Adicionar numeração automática
+    - Personalizar formato e posição
+    - Iniciar de números específicos
+
+[ ] Rotação de Páginas
+    - Rotacionar páginas individualmente ou em lote
+    - Corrigir orientação automática baseada no conteúdo
+
+================================================================================
+7. ANALYTICS E MONITORAMENTO
+================================================================================
+
+[ ] Estatísticas de Uso
+    - Contar número de arquivos processados
+    - Calcular tempo médio de processamento
+    - Medir economia média de espaço com compressão
+
+[ ] Logs Estruturados
+    - Exportar logs em formato JSON para análise
+    - Integração com sistemas de monitoramento (Sentry, ELK)
+    - Logs separados por nível (info, warning, error)
+
+[ ] Feedback do Usuário
+    - Formulário integrado para reportar bugs
+    - Sistema de rating de funcionalidades
+    - Coleta anônima de métricas de uso (opt-in)
+
+================================================================================
+8. INTERNACIONALIZAÇÃO (i18n)
+================================================================================
+
+[ ] Multi-idioma na Interface
+    - Traduzir interface para Inglês, Espanhol, Francês, etc.
+    - Sistema de localização baseado em arquivos .po/.mo
+    - Detecção automática do idioma do sistema
+
+[ ] Suporte a Caracteres Especiais
+    - Garantir suporte completo a Unicode
+    - Testar com alfabetos não-latinos (cirílico, árabe, chinês, japonês)
+    - Fontes apropriadas para diferentes scripts
+
+================================================================================
+PRIORIZAÇÃO SUGERIDA
+================================================================================
+
+FASE 1 (Alta Prioridade - Próximo Sprint):
+- [ ] Processamento assíncrono (evita travamentos de UI)
+- [ ] Executável standalone (facilita distribuição)
+- [ ] CLI básica (automação)
+- [ ] Extração de imagens (funcionalidade solicitada)
+- [ ] Mesclagem e divisão de PDFs (funcionalidade solicitada)
+
+FASE 2 (Média Prioridade - 1-2 Meses):
+- [ ] Temas claro/escuro
+- [ ] Drag & drop de pastas
+- [ ] Testes automatizados
+- [ ] Formatos de saída adicionais (Markdown, DOCX)
+- [ ] Suporte a PDFs com senha
+
+FASE 3 (Baixa Prioridade - Futuro):
+- [ ] OCR integrado
+- [ ] Resumo automático com IA
+- [ ] Containerização Docker
+- [ ] Publicação em lojas de aplicativos
+- [ ] Analytics avançado
+
+================================================================================
+NOTAS TÉCNICAS
+================================================================================
+
+Bibliotecas Recomendadas para Novas Funcionalidades:
+- OCR: pytesseract + pillow
+- Merge/Split: pypdf ou continuar com PyMuPDF (fitz)
+- CLI: argparse ou click
+- Async: asyncio + concurrent.futures
+- Temas: kivy.uix.behaviors + custom properties
+- Empacotamento: pyinstaller ou cx_Freeze
+- Testes: pytest + pytest-cov
+- i18n: gettext ou babel
+
+Considerações de Arquitetura:
+- Manter separação estrita entre core, gui e utils
+- Usar padrão Observer para atualizações de UI
+- Implementar Factory Pattern para diferentes formatos de saída
+- Considerar Plugin Architecture para funcionalidades extensíveis
+
+================================================================================
+ÚLTIMA ATUALIZAÇÃO: 2026-04-25
+VERSÃO DO DOCUMENTO: 1.0
+================================================================================
