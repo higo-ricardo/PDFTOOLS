@@ -142,7 +142,7 @@ Controle de qualidade e evolução do produto.
 - [ ] Visualizar thumbnails de todas as páginas
 - [ ] Selecionar páginas específicas
 - [ ] Extrair páginas selecionadas
-- [ ] Nomear arquivos automaticamente
+- [ ] Nomear arquivos automaticamente conforme 
 
 **Status:** ✅ Completo
 
