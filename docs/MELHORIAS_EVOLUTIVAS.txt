@@ -166,7 +166,7 @@ Este documento lista as melhorias evolutivas sugeridas para o projeto, organizad
 [ ] Extração de Imagens [EM PLANEJAMENTO]
     - Opção específica para extrair apenas imagens do PDF
     - Salvar em pasta organizada com nomes sequenciais
-    - Formatos suportados: PNG, JPG, TIFF
+    - Formatos suportados: PNG, JPG, GIF, SVG
     - Manter resolução original ou redimensionar
     - Extrair metadados das imagens quando disponíveis
 
@@ -227,15 +227,15 @@ PRIORIZAÇÃO SUGERIDA
 ================================================================================
 
 FASE 1 (Alta Prioridade - Próximo Sprint):
-- [ ] Processamento assíncrono (evita travamentos de UI)
+- [X] Processamento assíncrono (evita travamentos de UI)
 - [ ] Executável standalone (facilita distribuição)
 - [ ] CLI básica (automação)
-- [ ] Extração de imagens (funcionalidade solicitada)
-- [ ] Mesclagem e divisão de PDFs (funcionalidade solicitada)
+- [X] Extração de imagens (funcionalidade solicitada)
+- [X] Mesclagem e divisão de PDFs (funcionalidade solicitada)
 
 FASE 2 (Média Prioridade - 1-2 Meses):
-- [ ] Temas claro/escuro
-- [ ] Drag & drop de pastas
+- [X] Temas claro/escuro
+- [X] Drag & drop de pastas
 - [ ] Testes automatizados
 - [ ] Formatos de saída adicionais (Markdown, DOCX)
 - [ ] Suporte a PDFs com senha

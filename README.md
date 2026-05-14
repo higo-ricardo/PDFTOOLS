@@ -256,12 +256,12 @@ O ThemeManager automaticamente:
 
 2. **Instale as dependências:**
    ```bash
-   pip install customtkinter pdfplumber PyMuPDF Pillow
+   pip install customtkinter pdfplumber PyMuPDF Pillow tkinterdnd2
    ```
 
 3. **Execute a aplicação:**
    ```bash
-   python gui_tkinter/app.py
+   python gui.py
    ```
 
 4. **A interface moderna será aberta** com 6 abas:
@@ -453,11 +453,7 @@ Arquitetura em camadas para máxima manutenibilidade e testabilidade:
 │
 ├── config.py                   # Configuração centralizada (temas, cores, paths)
 ├── logger.py                   # Sistema de logging com rotação
-│
-├── gui_tkinter/                # Interface Moderna (CustomTkinter)
-│   ├── app.py                  # Aplicação principal com tabs
-│   ├── widgets.py              # Componentes customizados
-│   └── dialogs.py              # Diálogos reutilizáveis
+├── gui.py                      # Nova Interface Simplificada (Tkinter + DnD)
 │
 ├── core/                       # Camada de Domínio
 │   ├── services/               # Serviços de Negócio
