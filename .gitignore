@@ -4,11 +4,6 @@
 __pycache__/
 *.o
 *.obj
-*.so
-*.dll
-*.exe
-*.class
-*.out
 
 # Dependencies
 .venv/
@@ -21,23 +16,21 @@ venv/
 *.log
 *.tmp
 *.swp
-*.swo
 
 # Editors
 .vscode/
 .idea/
 
-# OS files
-.DS_Store
-Thumbs.db
-
 # Coverage reports
+.coverage
 coverage/
 htmlcov/
-.coverage
 
-# Build directories
-build/
-dist/
-target/
+# Python specific
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg-info/
 ```

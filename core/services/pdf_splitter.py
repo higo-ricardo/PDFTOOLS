@@ -186,8 +186,8 @@ class PDFSplitterService:
                 output_filename = f"{base_name}_pagina_{page_num + 1}.pdf"
                 output_path = os.path.join(output_dir, output_filename)
                 
-                # Salva página individual
-                new_doc.save(output_path)
+                # Salva página individual com compressão
+                new_doc.save(output_path, deflate=True, garbage=3)
                 new_doc.close()
                 
                 output_files.append(output_path)
@@ -201,7 +201,6 @@ class PDFSplitterService:
                 if i % 10 == 0:
                     import gc
                     gc.collect()
-            
             doc.close()
             
             logger.info(f"PDF dividido com sucesso: {len(output_files)} arquivos criados")
