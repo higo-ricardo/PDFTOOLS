@@ -170,7 +170,7 @@ class PDFMergerService:
                     if keep_bookmarks:
                         toc_entries.append([1, path.stem, total_pages + 1])
                     
-                    # Insere todas as páginas
+                    # Insere todas as páginas de uma vez (mais eficiente que página por página)
                     merged_doc.insert_pdf(src_doc)
                     total_pages += num_pages
                     
@@ -203,7 +203,7 @@ class PDFMergerService:
             if keep_bookmarks and toc_entries:
                 merged_doc.set_toc(toc_entries)
             
-            # Salva arquivo final
+            # Salva arquivo final com otimizações
             save_kwargs = {}
             if compress:
                 save_kwargs["deflate"] = True

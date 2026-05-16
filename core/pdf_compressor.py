@@ -62,7 +62,7 @@ class PDFCompressor:
                 logger.error(error_msg)
                 return "", error_msg
             
-            # Abre o documento original
+            # Abre o documento original com opções otimizadas
             doc = fitz.open(file_path)
             
             # Define caminho de saída
@@ -81,9 +81,12 @@ class PDFCompressor:
             # Cria novo documento
             new_doc = fitz.open()
             
+            # Pré-calcula matriz uma única vez
+            matrix = fitz.Matrix(zoom, zoom)
+            
             for page_num, page in enumerate(doc):
                 # Renderiza página como imagem com zoom reduzido
-                pix = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom))
+                pix = page.get_pixmap(matrix=matrix, alpha=False)
                 
                 # Cria nova página no documento de saída
                 new_page = new_doc.new_page(width=pix.width, height=pix.height)
@@ -91,10 +94,17 @@ class PDFCompressor:
                 # Insere imagem na página
                 new_page.insert_image(new_page.rect, pixmap=pix)
                 
+                # Libera memória da pixmap imediatamente
+                del pix
+                
                 logger.debug(f"Página {page_num + 1} processada")
             
-            # Salva o documento comprimido
-            new_doc.save(output_path)
+            # Salva o documento comprimido com otimizações
+            new_doc.save(
+                output_path,
+                deflate=True,
+                garbage=4
+            )
             new_doc.close()
             doc.close()
             
