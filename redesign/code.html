@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PDF Pro Suite — Neon Tokyo</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(15, 15, 26, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 45, 120, 0.1);
+        }
+        .neon-border {
+            box-shadow: 0 0 15px rgba(255, 45, 120, 0.3), inset 0 0 5px rgba(255, 45, 120, 0.2);
+        }
+        .neon-text-primary {
+            text-shadow: 0 0 8px rgba(255, 45, 120, 0.5);
+        }
+        .neon-text-secondary {
+            text-shadow: 0 0 8px rgba(0, 255, 204, 0.5);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a12;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #302840;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff2d78;
+        }
+        .terminal-glow {
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#001a1a",
+                        "secondary-container": "#004d3d",
+                        "on-primary-fixed-variant": "#8c0038",
+                        "secondary-fixed-dim": "#00e6b8",
+                        "secondary": "#00ffcc",
+                        "tertiary-container": "#665200",
+                        "tertiary": "#ffe04a",
+                        "surface-container-lowest": "#0a0a12",
+                        "surface-container-highest": "#28283e",
+                        "surface-container-high": "#1e1e30",
+                        "error": "#ff4444",
+                        "primary-container": "#b3004e",
+                        "on-surface-variant": "#a098b0",
+                        "background": "#0a0a12",
+                        "on-surface": "#e8e0f0",
+                        "secondary-fixed": "#c0fff4",
+                        "on-tertiary-container": "#fff0c0",
+                        "inverse-on-surface": "#0a0a12",
+                        "outline-variant": "#302840",
+                        "surface": "#0f0f1a",
+                        "on-error": "#1a0000",
+                        "surface-tint": "#ff2d78",
+                        "primary": "#ff2d78",
+                        "on-error-container": "#ffa0a0",
+                        "surface-container-low": "#111118",
+                        "surface-bright": "#1a1a2e",
+                        "outline": "#5a5068",
+                        "on-primary-fixed": "#3d0020",
+                        "on-secondary-fixed": "#001a1a",
+                        "on-background": "#e8e0f0",
+                        "inverse-surface": "#e8e0f0",
+                        "on-tertiary": "#1a1000",
+                        "primary-fixed": "#ffe0ec",
+                        "inverse-primary": "#8c0038",
+                        "on-tertiary-fixed": "#1a1000",
+                        "on-primary-container": "#ffe0ec",
+                        "on-primary": "#1a0010",
+                        "surface-dim": "#0f0f1a",
+                        "surface-variant": "#1e1e30",
+                        "on-tertiary-fixed-variant": "#665200",
+                        "error-container": "#3d0f0f",
+                        "surface-container": "#141422",
+                        "primary-fixed-dim": "#ff80aa",
+                        "tertiary-fixed-dim": "#ffe04a",
+                        "on-secondary-container": "#c0fff4",
+                        "tertiary-fixed": "#fff0c0",
+                        "on-secondary-fixed-variant": "#004d4d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Sora"],
+                        "display": ["Sora"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body min-h-screen flex flex-col selection:bg-primary selection:text-white overflow-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 h-16 bg-surface/90 backdrop-blur-md border-b border-primary/20">
+<div class="flex items-center gap-4">
+<span class="text-2xl font-headline font-extrabold text-primary neon-text-primary tracking-tighter">PDF PRO SUITE</span>
+<span class="bg-primary/10 border border-primary/30 text-primary px-2 py-0.5 rounded-sm text-[10px] uppercase tracking-widest font-bold">CORE_V4.0</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 px-3 py-1.5 rounded text-on-surface-variant hover:text-primary transition-all duration-300">
+<span class="material-symbols-outlined text-[20px]">light_mode</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-1.5 rounded bg-primary/10 border border-primary/30 text-primary font-label text-sm uppercase tracking-wider hover:bg-primary/20 transition-all active:scale-95">
+<span class="material-symbols-outlined text-[20px]">account_circle</span>
+<span>Painel</span>
+</button>
+</div>
+</header>
+<main class="flex-grow pt-16 flex flex-col items-center">
+<!-- Dashboard Navigation -->
+<nav class="w-full max-w-7xl px-8 mt-10">
+<div class="flex flex-wrap justify-center items-center gap-4">
+<!-- ACTIVE STATE: JUNTAR PDF -->
+<button class="group flex flex-col items-center gap-2 px-6 py-4 bg-primary text-white rounded-xl shadow-[0_0_20px_rgba(255,45,120,0.4)] active:scale-95 transition-all">
+<span class="material-symbols-outlined text-3xl font-bold">merge_type</span>
+<span class="font-label text-xs font-bold tracking-widest">JUNTAR PDF</span>
+</button>
+<button class="group flex flex-col items-center gap-2 px-6 py-4 text-on-surface-variant hover:text-secondary hover:bg-secondary/5 border border-transparent hover:border-secondary/20 rounded-xl active:scale-95 transition-all">
+<span class="material-symbols-outlined text-3xl">call_split</span>
+<span class="font-label text-xs font-bold tracking-widest">DIVIDIR PDF</span>
+</button>
+<button class="group flex flex-col items-center gap-2 px-6 py-4 text-on-surface-variant hover:text-secondary hover:bg-secondary/5 border border-transparent hover:border-secondary/20 rounded-xl active:scale-95 transition-all">
+<span class="material-symbols-outlined text-3xl">compress</span>
+<span class="font-label text-xs font-bold tracking-widest">COMPRIMIR PDF</span>
+</button>
+<button class="group flex flex-col items-center gap-2 px-6 py-4 text-on-surface-variant hover:text-secondary hover:bg-secondary/5 border border-transparent hover:border-secondary/20 rounded-xl active:scale-95 transition-all">
+<span class="material-symbols-outlined text-3xl">description</span>
+<span class="font-label text-xs font-bold tracking-widest">EXTRAIR TEXTO</span>
+</button>
+<button class="group flex flex-col items-center gap-2 px-6 py-4 text-on-surface-variant hover:text-secondary hover:bg-secondary/5 border border-transparent hover:border-secondary/20 rounded-xl active:scale-95 transition-all">
+<span class="material-symbols-outlined text-3xl">image</span>
+<span class="font-label text-xs font-bold tracking-widest">EXTRAIR IMAGEM</span>
+</button>
+<button class="group flex flex-col items-center gap-2 px-6 py-4 text-on-surface-variant hover:text-secondary hover:bg-secondary/5 border border-transparent hover:border-secondary/20 rounded-xl active:scale-95 transition-all">
+<span class="material-symbols-outlined text-3xl">swap_horiz</span>
+<span class="font-label text-xs font-bold tracking-widest">CONVERTER PDF</span>
+</button>
+</div>
+</nav>
+<div class="w-full max-w-7xl px-8 mt-8 grid grid-cols-12 gap-8 h-[calc(100vh-360px)] min-h-[400px]">
+<!-- Dropzone Area -->
+<div class="col-span-12 group relative flex flex-col items-center justify-center glass-panel rounded-2xl border-2 border-dashed border-outline-variant hover:border-primary transition-all duration-500 overflow-hidden">
+<div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<!-- Animated Scanline Effect -->
+<div class="absolute inset-0 pointer-events-none opacity-20 bg-[linear-gradient(0deg,transparent_24%,rgba(255,45,120,0.3)_25%,rgba(255,45,120,0.3)_26%,transparent_27%,transparent_74%,rgba(255,45,120,0.3)_75%,rgba(255,45,120,0.3)_76%,transparent_77%,transparent_100%)] bg-[length:100%_4px]"></div>
+<div class="relative flex flex-col items-center gap-6">
+<div class="w-28 h-28 flex items-center justify-center rounded-full bg-surface-container-highest border border-primary/30 shadow-[0_0_30px_rgba(255,45,120,0.2)] group-hover:shadow-[0_0_40px_rgba(255,45,120,0.4)] group-hover:scale-105 transition-all duration-500">
+<span class="material-symbols-outlined text-[56px] text-primary" style="font-variation-settings: 'FILL' 1;">upload_file</span>
+</div>
+<div class="text-center space-y-3">
+<p class="font-display text-3xl font-bold text-on-surface tracking-tight">Arraste e solte seus PDFs aqui</p>
+<p class="font-body text-on-surface-variant/80 max-w-md mx-auto">Upload instantâneo para processamento em nuvem otimizado por GPU.</p>
+</div>
+<button class="mt-4 px-10 py-4 bg-primary text-white font-label font-bold uppercase tracking-[0.2em] rounded shadow-[0_4px_15px_rgba(255,45,120,0.3)] hover:brightness-110 hover:shadow-[0_4px_25px_rgba(255,45,120,0.5)] active:scale-95 transition-all">
+                    Selecionar Arquivos
+                </button>
+</div>
+</div>
+<!-- Activity Log Section -->
+<div class="col-span-12 flex flex-col h-full overflow-hidden mb-12">
+<div class="flex items-center gap-3 mb-3 px-2">
+<span class="material-symbols-outlined text-[18px] text-secondary neon-text-secondary">terminal</span>
+<h3 class="font-label text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">Console de Sistema</h3>
+<div class="h-[1px] flex-grow bg-outline-variant/30 ml-4"></div>
+</div>
+<div class="flex-grow glass-panel rounded-xl p-5 font-mono text-xs overflow-y-auto space-y-2 border border-white/5 terminal-glow">
+<div class="flex gap-4">
+<span class="text-secondary opacity-70">[10:41:02]</span>
+<span class="text-on-surface-variant">NEON_OS inicializado. Núcleo V4.0 Ativo.</span>
+</div>
+<div class="flex gap-4">
+<span class="text-secondary opacity-70">[10:41:05]</span>
+<span class="text-on-surface-variant">Módulo de processamento GPU-Accel online. Latência: 4ms.</span>
+</div>
+<div class="flex gap-4">
+<span class="text-secondary opacity-70">[10:41:08]</span>
+<span class="text-primary font-bold">STATUS: AGUARDANDO_DADOS_PDF...</span>
+</div>
+<div class="animate-pulse flex gap-2">
+<span class="text-primary">█</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer / Status Bar -->
+<footer class="h-10 bg-surface-container-lowest border-t border-primary/20 flex items-center justify-between px-8 fixed bottom-0 w-full z-40">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_10px_#00ffcc]"></span>
+<span class="font-label text-[10px] font-bold uppercase tracking-widest text-secondary">Sistema: Estável</span>
+</div>
+<div class="h-4 w-[1px] bg-outline-variant/30"></div>
+<span class="font-label text-[10px] text-on-surface-variant tracking-widest">FILA: 0 TAREFAS</span>
+</div>
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors cursor-help">
+<span class="material-symbols-outlined text-[14px]">bolt</span>
+<span class="font-label text-[10px] uppercase tracking-wider">Motor: Tokyo_Extreme</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">verified_user</span>
+<span class="font-label text-[10px] uppercase tracking-wider">AES-256 Quantum</span>
+</div>
+<span class="font-label text-[10px] text-outline tracking-wider">14/05/2026 - 10:41</span>
+</div>
+</footer>
+<!-- Background Atmosphere Elements -->
+<div class="fixed top-[-10%] right-[-5%] w-[50%] h-[50%] bg-primary/10 blur-[150px] rounded-full -z-10 pointer-events-none"></div>
+<div class="fixed bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-secondary/10 blur-[150px] rounded-full -z-10 pointer-events-none"></div>
+<div class="fixed inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none -z-10"></div>
+</body></html>
